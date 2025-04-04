@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">bitdoglab</string>
+    <string name="title_activity_main">bitdoglab</string>
+    <string name="package_name">br.unicamp.ic.bitdoglab</string>
+    <string name="custom_url_scheme">br.unicamp.ic.bitdoglab</string>
+</resources>
