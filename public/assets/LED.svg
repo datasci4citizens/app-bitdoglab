@@ -1,3 +1,4 @@
+<!-- LED.svg -->
 <svg viewBox="0 0 50 50" xmlns="http://www.w3.org/2000/svg">
-  <rect id="led" x="0" rx="8" y="0" ry="8" width="50" height="50" fill="rgb(0, 0, 0)" text='off'/>
+  <rect id="led-shape" x="0" rx="8" y="0" ry="8" width="50" height="50" fill="rgb(0, 0, 0)" text='off'/>
 </svg>
