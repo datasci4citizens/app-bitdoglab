@@ -25,12 +25,12 @@ export class NeopixelController {
 
   async setupNeopixel() {
     if (this.connectionType === ConnectionType.BLUETOOTH) {
-      // For Bluetooth, setup is done on the device firmware
+      // Para Bluetooth HC-05, a configuração é feita no script do Raspberry Pi
       return;
     }
 
     const setupCommands = [
-      "\x03\r\n", // Creio que isso  deva rodar assim que iniciarmos a placa
+      "\x03\r\n", // Ctrl+C para interromper qualquer execução atual
       "from machine import Pin",
       "import neopixel",
       "np = neopixel.NeoPixel(Pin(7), 25)",
@@ -76,7 +76,9 @@ export class NeopixelController {
 
       if (ledRect && ledRect.getAttribute("text") == "on") {
         const cor = ledRect.getAttribute("fill");
-        dados.push({ pos: pos!, cor: cor! });
+        if (pos && cor) {
+          dados.push({ pos, cor });
+        }
       }
     });
 
@@ -102,7 +104,7 @@ export class NeopixelController {
 
   async sendLEDConfigurationsBluetooth(leds: NodeListOf<Element>) {
     if (!this.deviceId) {
-      throw new Error("No Bluetooth device ID provided");
+      throw new Error("Nenhum dispositivo Bluetooth fornecido");
     }
 
     try {
@@ -125,17 +127,17 @@ export class NeopixelController {
         }
       });
 
-      // Clear all LEDs first
-      await BluetoothService.clearAllLeds(this.deviceId, 25);
+      // Primeiro limpa todos os LEDs
+      await BluetoothService.clearAllLeds(this.deviceId);
 
-      // Send each LED update
+      // Envia cada atualização de LED
       if (ledData.length > 0) {
         await BluetoothService.sendLedData(this.deviceId, ledData);
       }
 
-      console.log("LED data sent successfully via Bluetooth!");
+      console.log("Dados dos LEDs enviados com sucesso via Bluetooth HC-05!");
     } catch (error) {
-      console.error("Error sending LED data via Bluetooth:", error);
+      console.error("Erro ao enviar dados dos LEDs via Bluetooth:", error);
       throw error;
     }
   }

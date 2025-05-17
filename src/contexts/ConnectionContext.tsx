@@ -105,15 +105,16 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({
     try {
       // We already initialized the BLE client in the useEffect
 
-      // Request a BLE device
+      // Request a BLE device - incluindo filtro para facilitar encontrar o HC-05
       const device = await BleClient.requestDevice({
-        // You can specify services to filter devices
-        // services: ["service_uuid"],
-        // You can use namePrefix to filter by device name
-        // namePrefix: "YourDevicePrefix",
+        // O HC-05 geralmente tem "HC-05" no nome
+        namePrefix: "HC-05",
+        // Podemos também especificar o UUID do serviço SPP, mas em alguns casos 
+        // o HC-05 não anuncia corretamente seus serviços
+        services: ["00001101-0000-1000-8000-00805F9B34FB"]
       });
 
-      console.log("Connecting to device:", device);
+      console.log("Conectando ao dispositivo HC-05:", device);
 
       // Connect to the device
       await BleClient.connect(device.deviceId, (deviceId) => {
@@ -130,11 +131,11 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({
       setConnectionType(ConnectionType.BLUETOOTH);
       setConnectedDevice({
         id: device.deviceId,
-        name: device.name || "Unknown Bluetooth Device",
+        name: device.name || "Dispositivo HC-05",
         type: ConnectionType.BLUETOOTH,
       });
 
-      console.log("Successfully connected to Bluetooth device");
+      console.log("Conectado com sucesso ao dispositivo HC-05");
     } catch (error) {
       console.error("Bluetooth connection error:", error);
       setIsConnected(false);
@@ -219,26 +220,57 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({
       }
     } else if (connectionType === ConnectionType.BLUETOOTH) {
       if (!bluetoothDevice) {
-        throw new Error("Not connected to any Bluetooth device");
+        throw new Error("Não conectado a nenhum dispositivo Bluetooth");
       }
 
-      // Here you would implement the specific Bluetooth command protocol.
-      // This depends on your device's services and characteristics.
-      console.log("Sending Bluetooth command:", command);
+      // Implementação específica para HC-05 usando o serviço SPP
+      console.log("Enviando comando Bluetooth:", command);
 
-      // Example implementation - would need to be customized based on your device:
-      // const SERVICE_UUID = "your_service_uuid";
-      // const CHARACTERISTIC_UUID = "your_characteristic_uuid";
-      // const encoder = new TextEncoder();
-      // const data = encoder.encode(command + "\r\n");
-      // await BleClient.write(
-      //   bluetoothDevice.deviceId,
-      //   SERVICE_UUID,
-      //   CHARACTERISTIC_UUID,
-      //   data
-      // );
+      try {
+        const HC05_SERVICE_UUID = "00001101-0000-1000-8000-00805F9B34FB";
+        const HC05_CHARACTERISTIC_UUID = "00001102-0000-1000-8000-00805F9B34FB";
+        const encoder = new TextEncoder();
+        const data = encoder.encode(command + "\r\n");
+        const dataView = new DataView(data.buffer);
 
-      throw new Error("Bluetooth command sending not implemented yet");
+        // Tenta enviar usando o serviço SPP padrão
+        await BleClient.write(
+          bluetoothDevice.deviceId,
+          HC05_SERVICE_UUID,
+          HC05_CHARACTERISTIC_UUID,
+          dataView
+        );
+      } catch (error) {
+        console.error("Erro ao enviar comando via Bluetooth:", error);
+        
+        // Se o serviço padrão falhar, tenta descobrir os serviços disponíveis
+        try {
+          const services = await BleClient.getServices(bluetoothDevice.deviceId);
+          if (services && services.length > 0) {
+            const service = services[0];
+            if (service && service.characteristics && service.characteristics.length > 0) {
+              const characteristic = service.characteristics.find(c => c.properties.write);
+              if (characteristic) {
+                const encoder = new TextEncoder();
+                const data = encoder.encode(command + "\r\n");
+                const dataView = new DataView(data.buffer);
+                
+                await BleClient.write(
+                  bluetoothDevice.deviceId,
+                  service.uuid,
+                  characteristic.uuid,
+                  dataView
+                );
+                return; // Comando enviado com sucesso
+              }
+            }
+          }
+          throw new Error("Não foi possível encontrar uma característica para escrever");
+        } catch (secondError) {
+          console.error("Falha na tentativa alternativa:", secondError);
+          throw new Error("Falha ao enviar comando via Bluetooth: " + error);
+        }
+      }
     } else {
       throw new Error("Not connected to any device");
     }
