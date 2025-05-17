@@ -1,126 +1,78 @@
-import { useEffect, useRef, useState } from 'react';
-import { Button } from '../components/ui/button';
-import { useNavigate } from 'react-router-dom';
-import './style.css'
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
 
 export default function LedRGB() {
-    const navigate = useNavigate();
-    const hasRun = useRef(false);
+  const navigate = useNavigate();
+  const [rgb, setRgb] = useState({ r: 0, g: 0, b: 0 });
 
-    const wrapperRefs = useRef<HTMLDivElement>(null);
-
-    const [valueR, setValueR] = useState(0);
-    const [valueG, setValueG] = useState(0);
-    const [valueB, setValueB] = useState(0);
-
-    const [led, setLed] = useState<HTMLDivElement | null>(null);
-
-    const updateLEDColor = (color: 'r' | 'g' | 'b') => (event: React.ChangeEvent<HTMLInputElement>) => {
-      const value = parseInt(event.target.value);
-       
-      if (color === 'r') {
-      setValueR(value);
-      } else if (color === 'g') {
-      setValueG(value);
-      } else if (color === 'b') {
-      setValueB(value);
-      }
-
-      // calcula nova cor RGB
-      const rgbColor = `rgb(${color === 'r' ? value : valueR}, ${color === 'g' ? value : valueG}, ${color === 'b' ? value : valueB})`;
-
-      const svg = led?.querySelector('svg');
-      const rect = svg?.querySelector('rect');
-      rect?.setAttribute('fill', rgbColor);
-      console.log(rect);
-    }
-
-    useEffect(() => {
-      if (hasRun.current) return;
-      hasRun.current = true;
-      fetch("/assets/LED.svg")
-        .then(res => res.text())
-        .then(svgText => {
-            const parser = new DOMParser();
-            const svgDoc = parser.parseFromString(svgText, "image/svg+xml");
-            const svg = svgDoc.querySelector('svg');
-            const rect = svg?.querySelector('#led');
-
-            if (!svg || !rect) return;
-
-            svg.setAttribute('id', '00');
-            svg.classList.add('led-svg');
-
-            const ledContainer = document.createElement('div');
-            ledContainer.classList.add('led-container');
-            ledContainer.appendChild(svg);
-
-            setLed(ledContainer);
-
-            if (wrapperRefs.current) {
-              wrapperRefs.current.appendChild(ledContainer);
-            }   
-      });
-
-      const limparBtn = document.getElementById("limpar");
-      const enviarBtn = document.getElementById("enviar");
-
-      limparBtn?.addEventListener("click", () => {
-        const led = document.querySelector('svg #led');
-        led?.setAttribute('fill', 'rgb(60, 60, 60)');
-      });
-
-      enviarBtn?.addEventListener("click", () => {
-        const led = document.querySelector('svg #led');
-        const cor = led?.getAttribute('fill');
-
-        const json = JSON.stringify({ledRGB: cor}, null, 3);
-        const blob = new Blob([json], { type: 'application/json' });
-        const link = document.createElement('a');
-        link.href = URL.createObjectURL(blob);
-        link.download = 'infoLEDs.json';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-      });
-
-    }, []);
+  // React.ChangeEvent<HTMLInputElement> é nome do tipo de um evento de input
+  const handleRgbChange = (e: React.ChangeEvent<HTMLInputElement>, color: keyof typeof rgb) => {
+    const value = Math.min(255, Math.max(0, parseInt(e.target.value) || 0)); // Garante que o valor esteja entre 0 e 255
+    setRgb({ ...rgb, [color]: value });
+  };
 
   return (
-    <>
-      <div className="absolute top-5 left-5">
-        <Button variant="blue" onClick={() => navigate('/components')}>
+    <div className="flex flex-col" id="led-rgb">
+      <header className="flex">
+        <Button className="mt-8 mb-8" variant="blue" onClick={() => navigate("/components")}>
           Voltar
         </Button>
-      </div>
-  
-      <div className="h-screen flex flex-col items-center justify-center gap-3.5">
-        <h1 className="text-ubuntu font-medium text-lg">Led RGB</h1>
-        <h2 className="text-ubuntu font-medium text-md mb-5">Ajuste a cor do LED com os controles abaixo!</h2>
-        <div id="leds-wrapper" ref={wrapperRefs}></div>
-        <div className="slider-container">
-            <label className='font-medium font-ubuntu text-md'>R:
-                <input type="range" id="rSlider" min="0" max="255" value={valueR} onChange={updateLEDColor('r')}></input>
-                <span id="rValueDisplay">{valueR}</span>
-            </label>
-        </div>
-        <div className="slider-container">
-            <label className='font-medium font-ubuntu text-md'>G:
-                <input type="range" id="gSlider" min="0" max="255" value={valueG} onChange={updateLEDColor('g')}></input>
-                <span id="gValueDisplay">{valueG}</span>
-            </label>
-        </div>
-        <div className="slider-container">
-            <label className='font-medium font-ubuntu text-md'>B:
-                <input type="range" id="bSlider" min="0" max="255" value={valueB} onChange={updateLEDColor('b')}></input>
-                <span id="bValueDisplay">{valueB}</span>
-            </label>
-        </div>
-        <div className='flex flex-row justify-center gap-3 mt-3'>
-            <Button variant="whitePink" id="limpar">Limpar</Button> <Button id="enviar">Enviar</Button>
-        </div>
-      </div>
+      </header>
+      <main className="flex flex-col items-center gap-6">
+        {/* Quadrado que representa o LED (cor dinâmica) */}
+        <div
+          className="w-32 h-32 border-2 border-gray-300 rounded-lg"
+          style={{ backgroundColor: `rgb(${rgb.r}, ${rgb.g}, ${rgb.b})` }}
+        ></div>
 
-    </>
-    );
+        {/* Inputs para R, G e B */}
+        <div className="flex gap-4">
+          <div className="flex flex-col items-center">
+            <label htmlFor="r" className="text-red-500 font-bold">R</label>
+            <input
+              id="r"
+              type="number"
+              min="0"
+              max="255"
+              value={rgb.r}
+              onChange={(e) => handleRgbChange(e, "r")}
+              className="border-2 p-2 rounded-lg w-20 text-center"
+            />
+          </div>
+
+          <div className="flex flex-col items-center">
+            <label htmlFor="g" className="text-green-600 font-bold">G</label>
+            <input
+              id="g"
+              type="number"
+              min="0"
+              max="255"
+              value={rgb.g}
+              onChange={(e) => handleRgbChange(e, "g")}
+              className="border-2 p-2 rounded-lg w-20 text-center"
+            />
+          </div>
+
+          <div className="flex flex-col items-center">
+            <label htmlFor="b" className="text-blue-500 font-bold">B</label>
+            <input
+              id="b"
+              type="number"
+              min="0"
+              max="255"
+              value={rgb.b}
+              onChange={(e) => handleRgbChange(e, "b")}
+              className="border-2 p-2 rounded-lg w-20 text-center"
+            />
+          </div>
+        </div>
+
+        {/* Exibe o valor RGB atual */}
+        <p className="text-gray-700">
+          RGB: {rgb.r}, {rgb.g}, {rgb.b}
+        </p>
+      </main>
+    </div>
+  );
 }
