@@ -109,9 +109,9 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({
       const device = await BleClient.requestDevice({
         // O HC-05 geralmente tem "HC-05" no nome
         namePrefix: "HC-05",
-        // Podemos também especificar o UUID do serviço SPP, mas em alguns casos 
+        // Podemos também especificar o UUID do serviço SPP, mas em alguns casos
         // o HC-05 não anuncia corretamente seus serviços
-        services: ["00001101-0000-1000-8000-00805F9B34FB"]
+        services: ["00001101-0000-1000-8000-00805F9B34FB"],
       });
 
       console.log("Conectando ao dispositivo HC-05:", device);
@@ -242,19 +242,27 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({
         );
       } catch (error) {
         console.error("Erro ao enviar comando via Bluetooth:", error);
-        
+
         // Se o serviço padrão falhar, tenta descobrir os serviços disponíveis
         try {
-          const services = await BleClient.getServices(bluetoothDevice.deviceId);
+          const services = await BleClient.getServices(
+            bluetoothDevice.deviceId
+          );
           if (services && services.length > 0) {
             const service = services[0];
-            if (service && service.characteristics && service.characteristics.length > 0) {
-              const characteristic = service.characteristics.find(c => c.properties.write);
+            if (
+              service &&
+              service.characteristics &&
+              service.characteristics.length > 0
+            ) {
+              const characteristic = service.characteristics.find(
+                (c) => c.properties.write
+              );
               if (characteristic) {
                 const encoder = new TextEncoder();
                 const data = encoder.encode(command + "\r\n");
                 const dataView = new DataView(data.buffer);
-                
+
                 await BleClient.write(
                   bluetoothDevice.deviceId,
                   service.uuid,
@@ -265,7 +273,9 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({
               }
             }
           }
-          throw new Error("Não foi possível encontrar uma característica para escrever");
+          throw new Error(
+            "Não foi possível encontrar uma característica para escrever"
+          );
         } catch (secondError) {
           console.error("Falha na tentativa alternativa:", secondError);
           throw new Error("Falha ao enviar comando via Bluetooth: " + error);

@@ -19,7 +19,10 @@ export class BluetoothService {
    * @param deviceId The ID of the connected Bluetooth device
    * @param leds Array of LED data to send
    */
-  public static async sendLedData(deviceId: string, leds: NeopixelLed[]): Promise<void> {
+  public static async sendLedData(
+    deviceId: string,
+    leds: NeopixelLed[]
+  ): Promise<void> {
     try {
       if (!deviceId) {
         throw new Error("No device connected");
@@ -32,10 +35,10 @@ export class BluetoothService {
         const commandString = `LED:${led.position},${led.red},${led.green},${led.blue};`;
         const encoder = new TextEncoder();
         const data = encoder.encode(commandString);
-        
+
         // Convertemos para DataView para compatibilidade com a API BleClient
         const dataView = new DataView(data.buffer);
-        
+
         try {
           // Tentamos enviar usando o serviço SPP
           await BleClient.write(
@@ -46,14 +49,20 @@ export class BluetoothService {
           );
         } catch (error) {
           console.log("Erro no serviço SPP, tentando método alternativo...");
-          
+
           // Se falhar, tentamos enviar para qualquer serviço disponível
           // Isso é necessário porque o HC-05 pode não anunciar o serviço SPP corretamente
           const services = await BleClient.getServices(deviceId);
           if (services && services.length > 0) {
             const service = services[0];
-            if (service && service.characteristics && service.characteristics.length > 0) {
-              const characteristic = service.characteristics.find(c => c.properties.write);
+            if (
+              service &&
+              service.characteristics &&
+              service.characteristics.length > 0
+            ) {
+              const characteristic = service.characteristics.find(
+                (c) => c.properties.write
+              );
               if (characteristic) {
                 await BleClient.write(
                   deviceId,
@@ -65,11 +74,11 @@ export class BluetoothService {
             }
           }
         }
-        
+
         // Pequeno atraso para evitar sobrecarga
-        await new Promise(resolve => setTimeout(resolve, 20));
+        await new Promise((resolve) => setTimeout(resolve, 20));
       }
-      
+
       console.log(`Enviados ${leds.length} atualizações de LED via Bluetooth`);
     } catch (error) {
       console.error("Falha ao enviar dados de LED via Bluetooth:", error);
@@ -91,7 +100,7 @@ export class BluetoothService {
       const encoder = new TextEncoder();
       const data = encoder.encode(commandString);
       const dataView = new DataView(data.buffer);
-      
+
       try {
         // Tentamos enviar usando o serviço SPP
         await BleClient.write(
@@ -101,14 +110,22 @@ export class BluetoothService {
           dataView
         );
       } catch (error) {
-        console.log("Erro no serviço SPP para limpar LEDs, tentando método alternativo...");
-        
+        console.log(
+          "Erro no serviço SPP para limpar LEDs, tentando método alternativo..."
+        );
+
         // Se falhar, tentamos enviar para qualquer serviço disponível
         const services = await BleClient.getServices(deviceId);
         if (services && services.length > 0) {
           const service = services[0];
-          if (service && service.characteristics && service.characteristics.length > 0) {
-            const characteristic = service.characteristics.find(c => c.properties.write);
+          if (
+            service &&
+            service.characteristics &&
+            service.characteristics.length > 0
+          ) {
+            const characteristic = service.characteristics.find(
+              (c) => c.properties.write
+            );
             if (characteristic) {
               await BleClient.write(
                 deviceId,
@@ -120,7 +137,7 @@ export class BluetoothService {
           }
         }
       }
-      
+
       console.log("Todos os LEDs foram limpos via Bluetooth");
     } catch (error) {
       console.error("Falha ao limpar LEDs via Bluetooth:", error);

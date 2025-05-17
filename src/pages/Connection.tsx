@@ -2,6 +2,8 @@ import { useState } from "react";
 import { Button } from "../components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { useConnection, ConnectionType } from "../contexts/ConnectionContext";
+import { CodeSendProgress } from "../components/CodeSendProgress";
+import { sendPythonCodeToRaspberry } from "../utils/raspberryCodeSender";
 
 export default function Connection() {
   const navigate = useNavigate();
@@ -9,6 +11,12 @@ export default function Connection() {
     useConnection();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showCodeSendDialog, setShowCodeSendDialog] = useState(false);
+  const [codeSendProgress, setCodeSendProgress] = useState(0);
+  const [codeSendStatus, setCodeSendStatus] = useState<
+    "sending" | "waiting" | "success" | "error"
+  >("sending");
+  const [errorMessage, setErrorMessage] = useState<string | undefined>();
 
   const handleSerialConnection = async () => {
     if (isConnected) {
@@ -120,13 +128,57 @@ export default function Connection() {
       </div>
 
       {isConnected && (
-        <Button
-          onClick={() => navigate("/components")}
-          className="mt-6 min-w-[200px]"
-        >
-          Continuar para Componentes
-        </Button>
+        <div className="flex flex-col gap-4 mt-6">
+          <Button
+            onClick={() => navigate("/components")}
+            className="min-w-[200px]"
+          >
+            Continuar para Componentes
+          </Button>
+
+          {connectionType === ConnectionType.BLUETOOTH && connectedDevice && (
+            <Button
+              onClick={async () => {
+                try {
+                  setShowCodeSendDialog(true);
+                  setCodeSendProgress(0);
+                  setCodeSendStatus("sending");
+
+                  await sendPythonCodeToRaspberry(
+                    connectedDevice.id,
+                    (progress) => setCodeSendProgress(progress),
+                    (status, message) => {
+                      setCodeSendStatus(status);
+                      if (status === "error") {
+                        setErrorMessage(message);
+                      }
+                    }
+                  );
+                } catch (error) {
+                  console.error("Erro ao enviar código:", error);
+                  setCodeSendStatus("error");
+                  setErrorMessage(
+                    error instanceof Error ? error.message : "Erro desconhecido"
+                  );
+                }
+              }}
+              variant="outline"
+              className="min-w-[200px]"
+            >
+              Enviar Código para Raspberry Pi
+            </Button>
+          )}
+        </div>
       )}
+
+      <CodeSendProgress
+        isOpen={showCodeSendDialog}
+        onClose={() => setShowCodeSendDialog(false)}
+        deviceName={connectedDevice?.name || "dispositivo"}
+        progress={codeSendProgress}
+        status={codeSendStatus}
+        errorMessage={errorMessage}
+      />
     </div>
   );
 }

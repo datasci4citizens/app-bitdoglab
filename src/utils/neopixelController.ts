@@ -130,12 +130,29 @@ export class NeopixelController {
       // Primeiro limpa todos os LEDs
       await BluetoothService.clearAllLeds(this.deviceId);
 
-      // Envia cada atualização de LED
-      if (ledData.length > 0) {
-        await BluetoothService.sendLedData(this.deviceId, ledData);
+      // Se não houver LEDs acesos, terminamos aqui
+      if (ledData.length === 0) {
+        console.log("Nenhum LED ativo para enviar");
+        return;
       }
 
-      console.log("Dados dos LEDs enviados com sucesso via Bluetooth HC-05!");
+      // Ordena os LEDs por posição para garantir que sejam enviados em ordem
+      const sortedLeds = ledData.sort((a, b) => a.position - b.position);
+
+      // Envia as atualizações em pequenos lotes para evitar sobrecarga do buffer
+      const BATCH_SIZE = 5; // Enviar 5 LEDs por vez
+
+      for (let i = 0; i < sortedLeds.length; i += BATCH_SIZE) {
+        const batch = sortedLeds.slice(i, i + BATCH_SIZE);
+        await BluetoothService.sendLedData(this.deviceId, batch);
+
+        // Pequeno atraso entre lotes para garantir que todos os comandos sejam processados
+        await new Promise((resolve) => setTimeout(resolve, 50));
+      }
+
+      console.log(
+        `Dados de ${ledData.length} LEDs enviados com sucesso via Bluetooth HC-05!`
+      );
     } catch (error) {
       console.error("Erro ao enviar dados dos LEDs via Bluetooth:", error);
       throw error;

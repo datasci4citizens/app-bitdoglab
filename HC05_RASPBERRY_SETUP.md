@@ -15,22 +15,22 @@ Este guia explica como configurar o módulo Bluetooth HC-05 com um Raspberry Pi 
 
 ### HC-05 para Raspberry Pi
 
-| HC-05 | Raspberry Pi |
-|-------|--------------|
-| VCC   | 5V (pino 2 ou 4) |
+| HC-05 | Raspberry Pi              |
+| ----- | ------------------------- |
+| VCC   | 5V (pino 2 ou 4)          |
 | GND   | GND (pino 6, 9, 14, etc.) |
-| TXD   | GPIO15/RXD (pino 10) |
-| RXD   | GPIO14/TXD (pino 8) |
+| TXD   | GPIO15/RXD (pino 10)      |
+| RXD   | GPIO14/TXD (pino 8)       |
 
 ### Neopixel para Raspberry Pi
 
-| Neopixel | Raspberry Pi |
-|----------|--------------|
-| VCC      | Fonte externa 5V* |
+| Neopixel | Raspberry Pi                                      |
+| -------- | ------------------------------------------------- |
+| VCC      | Fonte externa 5V\*                                |
 | GND      | GND (conectado ao GND da fonte e do Raspberry Pi) |
-| DIN      | GPIO18 (pino 12) via resistor de 470 ohm |
+| DIN      | GPIO18 (pino 12) via resistor de 470 ohm          |
 
-*Nota: Para mais de alguns LEDs, use uma fonte de alimentação externa de 5V. Não tente alimentar muitos LEDs diretamente do Raspberry Pi.
+\*Nota: Para mais de alguns LEDs, use uma fonte de alimentação externa de 5V. Não tente alimentar muitos LEDs diretamente do Raspberry Pi.
 
 ## Configuração do Software no Raspberry Pi
 
@@ -98,10 +98,12 @@ echo -e 'CLEAR_ALL;' > /dev/rfcomm0      # Limpa todos os LEDs
 ### Problemas Comuns
 
 1. **O HC-05 não conecta**
+
    - Verifique se o módulo tem energia (LED piscando)
    - Certifique-se de que o pin code padrão é "1234" ou "0000"
 
 2. **Os LEDs não respondem**
+
    - Verifique as conexões do pino de dados e GND
    - Certifique-se de que a fonte de alimentação é adequada
    - Verifique se o script está em execução (`ps aux | grep neopixel`)
