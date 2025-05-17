@@ -1,14 +1,14 @@
 import { useNavigate } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { useConnection } from "../contexts/ConnectionContext";
+import { useConnection, ConnectionType } from "../contexts/ConnectionContext";
 import { NeopixelController } from "../utils/neopixelController";
 import idea from "../assets/imgs/lampada.png";
 
 export default function Neopixel() {
   const navigate = useNavigate();
   const hasRun = useRef(false);
-  const { sendCommand } = useConnection();
+  const { sendCommand, connectionType, bluetoothDevice } = useConnection();
   const neopixelController = useRef<NeopixelController | null>(null);
 
   const ledsContainerRef = useRef<HTMLDivElement>(null);
@@ -89,7 +89,12 @@ export default function Neopixel() {
     if (hasRun.current) return;
     hasRun.current = true;
 
-    neopixelController.current = new NeopixelController(sendCommand);
+    // Initialize the controller with the proper connection type and device ID
+    neopixelController.current = new NeopixelController(
+      sendCommand,
+      connectionType || ConnectionType.SERIAL,
+      bluetoothDevice?.deviceId || null
+    );
 
     // Cria os LEDs
     let line = Math.ceil(numbLEDs / LEDsInline) - 1;
@@ -141,7 +146,7 @@ export default function Neopixel() {
         console.error("Erro ao configurar LEDs:", error);
       }
     });
-  }, [sendCommand]);
+  }, [sendCommand, connectionType, bluetoothDevice]);
 
   return (
     <>
@@ -231,6 +236,18 @@ export default function Neopixel() {
           </Button>
           <Button id="enviar">Enviar</Button>
         </div>
+
+        {connectionType === ConnectionType.BLUETOOTH && (
+          <div className="text-xs text-gray-600 mt-2 text-center max-w-md">
+            <p>
+              Conectado via Bluetooth. As configurações são enviadas diretamente
+              para o dispositivo Bluetooth.
+            </p>
+            <p className="mt-1">
+              Dispositivo: {bluetoothDevice?.name || "Dispositivo desconhecido"}
+            </p>
+          </div>
+        )}
       </div>
     </>
   );
