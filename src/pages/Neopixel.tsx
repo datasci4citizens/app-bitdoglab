@@ -8,7 +8,7 @@ import idea from "../assets/imgs/lampada.png";
 export default function Neopixel() {
   const navigate = useNavigate();
   const hasRun = useRef(false);
-  const { sendCommand } = useConnection();
+  const { sendCommand, connectionType } = useConnection();
   const neopixelController = useRef<NeopixelController | null>(null);
 
   const ledsContainerRef = useRef<HTMLDivElement>(null);
@@ -89,7 +89,10 @@ export default function Neopixel() {
     if (hasRun.current) return;
     hasRun.current = true;
 
-    neopixelController.current = new NeopixelController(sendCommand);
+    neopixelController.current = new NeopixelController(
+      sendCommand,
+      connectionType
+    );
 
     // Cria os LEDs
     let line = Math.ceil(numbLEDs / LEDsInline) - 1;

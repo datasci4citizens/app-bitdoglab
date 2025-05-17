@@ -11,6 +11,7 @@
 		"preview": "vite preview"
 	},
 	"dependencies": {
+		"@awesome-cordova-plugins/bluetooth-serial": "^6.16.0",
 		"@capacitor/android": "^6.1.2",
 		"@capacitor/core": "^6.1.2",
 		"@capacitor/ios": "^6.1.2",
@@ -33,6 +34,7 @@
 		"@radix-ui/react-toast": "^1.2.1",
 		"class-variance-authority": "^0.7.0",
 		"clsx": "^2.1.1",
+		"cordova-plugin-bluetooth-serial": "^0.4.7",
 		"embla-carousel-react": "^8.2.0",
 		"lucide-react": "^0.436.0",
 		"react": "^18.3.1",
