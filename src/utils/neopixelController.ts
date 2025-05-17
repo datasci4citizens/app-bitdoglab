@@ -1,4 +1,7 @@
 import { toMicropython } from "../json/toMicropython";
+import { ConnectionType } from "../contexts/ConnectionContext";
+import { BluetoothService } from "./bluetoothService";
+import type { NeopixelLed } from "./bluetoothService";
 
 export interface NeopixelData {
   pos: string;
@@ -7,12 +10,25 @@ export interface NeopixelData {
 
 export class NeopixelController {
   private sendCommand: (command: string) => Promise<void>;
+  private connectionType: ConnectionType;
+  private deviceId: string | null;
 
-  constructor(sendCommand: (command: string) => Promise<void>) {
+  constructor(
+    sendCommand: (command: string) => Promise<void>,
+    connectionType: ConnectionType = ConnectionType.SERIAL,
+    deviceId: string | null = null
+  ) {
     this.sendCommand = sendCommand;
+    this.connectionType = connectionType;
+    this.deviceId = deviceId;
   }
 
   async setupNeopixel() {
+    if (this.connectionType === ConnectionType.BLUETOOTH) {
+      // For Bluetooth, setup is done on the device firmware
+      return;
+    }
+
     const setupCommands = [
       "\x03\r\n", // Creio que isso  deva rodar assim que iniciarmos a placa
       "from machine import Pin",
@@ -27,13 +43,37 @@ export class NeopixelController {
     }
   }
 
+  // Parse RGB color string to individual components
+  private parseRgbColor(rgbStr: string): { r: number; g: number; b: number } {
+    // Parse "rgb(r, g, b)" format
+    const match = rgbStr.match(/rgb\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)/);
+    if (match && match[1] && match[2] && match[3]) {
+      return {
+        r: parseInt(match[1], 10),
+        g: parseInt(match[2], 10),
+        b: parseInt(match[3], 10),
+      };
+    }
+
+    // Default to black if parsing fails
+    return { r: 0, g: 0, b: 0 };
+  }
+
   async sendLEDConfigurations(leds: NodeListOf<Element>) {
+    if (this.connectionType === ConnectionType.BLUETOOTH) {
+      return this.sendLEDConfigurationsBluetooth(leds);
+    } else {
+      return this.sendLEDConfigurationsSerial(leds);
+    }
+  }
+
+  async sendLEDConfigurationsSerial(leds: NodeListOf<Element>) {
     const dados: NeopixelData[] = [];
 
     leds.forEach((svg) => {
       const pos = svg.getAttribute("id");
       const ledRect = svg.querySelector("#led");
-      
+
       if (ledRect && ledRect.getAttribute("text") == "on") {
         const cor = ledRect.getAttribute("fill");
         dados.push({ pos: pos!, cor: cor! });
@@ -53,9 +93,49 @@ export class NeopixelController {
         await new Promise((resolve) => setTimeout(resolve, 50));
       }
 
-      console.log("Comandos enviados com sucesso!");
+      console.log("Comandos enviados com sucesso via Serial!");
     } catch (error) {
-      console.error("Erro ao enviar comandos:", error);
+      console.error("Erro ao enviar comandos via Serial:", error);
+      throw error;
+    }
+  }
+
+  async sendLEDConfigurationsBluetooth(leds: NodeListOf<Element>) {
+    if (!this.deviceId) {
+      throw new Error("No Bluetooth device ID provided");
+    }
+
+    try {
+      const ledData: NeopixelLed[] = [];
+
+      leds.forEach((svg) => {
+        const pos = svg.getAttribute("id");
+        const ledRect = svg.querySelector("#led");
+
+        if (ledRect && ledRect.getAttribute("text") == "on" && pos) {
+          const color = ledRect.getAttribute("fill") || "rgb(0,0,0)";
+          const { r, g, b } = this.parseRgbColor(color);
+
+          ledData.push({
+            position: parseInt(pos, 10),
+            red: r,
+            green: g,
+            blue: b,
+          });
+        }
+      });
+
+      // Clear all LEDs first
+      await BluetoothService.clearAllLeds(this.deviceId, 25);
+
+      // Send each LED update
+      if (ledData.length > 0) {
+        await BluetoothService.sendLedData(this.deviceId, ledData);
+      }
+
+      console.log("LED data sent successfully via Bluetooth!");
+    } catch (error) {
+      console.error("Error sending LED data via Bluetooth:", error);
       throw error;
     }
   }
