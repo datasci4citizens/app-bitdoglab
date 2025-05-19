@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { Button } from '../components/ui/button';
+import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
-import './style.css'
 
 export default function LedRGB() {
     const navigate = useNavigate();
@@ -98,23 +97,54 @@ export default function LedRGB() {
         <h1 className="text-ubuntu font-medium text-lg">Led RGB</h1>
         <h2 className="text-ubuntu font-medium text-md mb-5">Ajuste a cor do LED com os controles abaixo!</h2>
         <div id="leds-wrapper" ref={wrapperRefs}></div>
-        <div className="slider-container">
-            <label className='font-medium font-ubuntu text-md'>R:
-                <input type="range" id="rSlider" min="0" max="255" value={valueR} onChange={updateLEDColor('r')}></input>
-                <span id="rValueDisplay">{valueR}</span>
+        <div>
+          {/* Slider R */}
+          <div className="flex items-center gap-3 mt-2">
+            <label className="w-6 text-right font-medium font-ubuntu text-md">
+              R:
             </label>
-        </div>
-        <div className="slider-container">
-            <label className='font-medium font-ubuntu text-md'>G:
-                <input type="range" id="gSlider" min="0" max="255" value={valueG} onChange={updateLEDColor('g')}></input>
-                <span id="gValueDisplay">{valueG}</span>
+            <input
+              type="range"
+              value={valueR}
+              onChange={updateLEDColor("r")}
+              min={0}
+              max={255}
+              className="w-[250px] h-[10px] rounded-lg appearance-none outline-none cursor-pointer bg-gradient-to-r from-black to-rgb-red"
+            />
+            <span className="w-8 text-left">{valueR}</span>
+          </div>
+
+          {/* Slider G */}
+          <div className="flex items-center gap-3 mt-2">
+            <label className="w-6 text-right font-medium font-ubuntu text-md">
+              G:
             </label>
-        </div>
-        <div className="slider-container">
-            <label className='font-medium font-ubuntu text-md'>B:
-                <input type="range" id="bSlider" min="0" max="255" value={valueB} onChange={updateLEDColor('b')}></input>
-                <span id="bValueDisplay">{valueB}</span>
+            <input
+              type="range"
+              value={valueG}
+              onChange={updateLEDColor("g")}
+              min={0}
+              max={255}
+              className="w-[250px] h-[10px] rounded-lg appearance-none outline-none cursor-pointer bg-gradient-to-r from-black to-rgb-green"
+            />
+            <span className="w-8 text-left">{valueG}</span>
+          </div>
+
+          {/* Slider B */}
+          <div className="flex items-center gap-3 mt-2">
+            <label className="w-6 text-right font-medium font-ubuntu text-md">
+              B:
             </label>
+            <input
+              type="range"
+              value={valueB}
+              onChange={updateLEDColor("b")}
+              min={0}
+              max={255}
+              className="w-[250px] h-[10px] rounded-lg appearance-none outline-none cursor-pointer bg-gradient-to-r from-black to-rgb-blue"
+            />
+            <span className="w-8 text-left">{valueB}</span>
+          </div>
         </div>
         <div className='flex flex-row justify-center gap-3 mt-3'>
             <Button variant="whitePink" id="limpar">Limpar</Button> <Button id="enviar">Enviar</Button>

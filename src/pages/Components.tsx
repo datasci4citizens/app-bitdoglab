@@ -1,4 +1,4 @@
-import { Button } from "../components/ui/button";
+import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import bitdog from "../assets/imgs/bitdog-fav-1.png";
 
@@ -10,7 +10,7 @@ export default function Components() {
       <img
         src={bitdog}
         alt="imagem BitDog"
-        className="w-1/4 mb-4" // Changed from w-1/2 to w-1/4 to make it 50% smaller
+        className="w-1/2 md:w-1/3 lg:w-1/4 max-w-xs mb-4"
       />
       <h1 className="text-ubuntu font-medium text-lg">
         Qual componente você quer explorar?

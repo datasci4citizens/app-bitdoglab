@@ -1,9 +1,8 @@
 import { useEffect, useRef, useState } from "react";
-import { Button } from "../components/ui/button";
+import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import "./style.css";
 
-export default function Rgb() {
+export default function RGBInfo() {
   const navigate = useNavigate();
   const hasRun = useRef(false);
 
@@ -16,29 +15,33 @@ export default function Rgb() {
   const [leds, setLeds] = useState<HTMLDivElement[]>([]);
 
   const updateLEDColor =
-    (color: "r" | "g" | "b") =>
-    (event: React.ChangeEvent<HTMLInputElement>) => {
-      const value = parseInt(event.target.value);
+  (color: "r" | "g" | "b") =>
+  (event: React.ChangeEvent<HTMLInputElement>) => {
+    const value = parseInt(event.target.value);
 
-      if (color === "r") setValueR(value);
-      if (color === "g") setValueG(value);
-      if (color === "b") setValueB(value);
+    // Atualiza diretamente o valor do estado
+    if (color === "r") setValueR(value);
+    if (color === "g") setValueG(value);
+    if (color === "b") setValueB(value);
 
-      if (leds.length === 4) {
-        const [ledR, ledG, ledB, ledRGB] = leds.map((div) =>
-          div.querySelector("svg #led")
-        );
+    if (leds.length === 4) {
+      const [ledR, ledG, ledB, ledRGB] = leds.map((div) =>
+        div.querySelector("svg #led")
+      );
 
-        ledR?.setAttribute("fill", `rgb(${valueR},0,0)`);
-        ledG?.setAttribute("fill", `rgb(0,${valueG},0)`);
-        ledB?.setAttribute("fill", `rgb(0,0,${valueB})`);
+      // Atualiza as cores diretamente ao mudar o valor do slider
+      if (color === "r") ledR?.setAttribute("fill", `rgb(${value},0,0)`);
+      if (color === "g") ledG?.setAttribute("fill", `rgb(0,${value},0)`);
+      if (color === "b") ledB?.setAttribute("fill", `rgb(0,0,${value})`);
 
-        const r = color === "r" ? value : valueR;
-        const g = color === "g" ? value : valueG;
-        const b = color === "b" ? value : valueB;
-        ledRGB?.setAttribute("fill", `rgb(${r},${g},${b})`);
-      }
-    };
+      const r = color === "r" ? value : valueR;
+      const g = color === "g" ? value : valueG;
+      const b = color === "b" ? value : valueB;
+
+      // Atualiza a cor final (mistura RGB)
+      ledRGB?.setAttribute("fill", `rgb(${r},${g},${b})`);
+    }
+  };
 
   useEffect(() => {
     if (hasRun.current) return;
@@ -108,54 +111,61 @@ export default function Rgb() {
   return (
     <>
       <div className="absolute top-5 left-5">
-        <Button variant="blue" onClick={() => navigate("/components")}>
+        <Button variant="blue" onClick={() => navigate("/components/neopixel/info")}>
           Voltar
         </Button>
       </div>
 
       <div className="h-screen flex flex-col items-center justify-center gap-3.5">
         <h1 className="text-ubuntu font-bold text-lg">Como a cor é formada?</h1>
-        <div className="slider-container">
-          <label className="font-medium font-ubuntu text-md">
-            R:
+        <div>
+          {/* Slider R */}
+          <div className="flex items-center gap-3 mt-2">
+            <label className="w-6 text-right font-medium font-ubuntu text-md">
+              R:
+            </label>
             <input
               type="range"
-              id="rSlider"
-              min="0"
-              max="255"
               value={valueR}
               onChange={updateLEDColor("r")}
-            ></input>
-            <span id="rValueDisplay">{valueR}</span>
-          </label>
-        </div>
-        <div className="slider-container">
-          <label className="font-medium font-ubuntu text-md">
-            G:
+              min={0}
+              max={255}
+              className="w-[250px] h-[10px] rounded-lg appearance-none outline-none cursor-pointer bg-gradient-to-r from-black to-rgb-red"
+            />
+            <span className="w-8 text-left">{valueR}</span>
+          </div>
+
+          {/* Slider G */}
+          <div className="flex items-center gap-3 mt-2">
+            <label className="w-6 text-right font-medium font-ubuntu text-md">
+              G:
+            </label>
             <input
               type="range"
-              id="gSlider"
-              min="0"
-              max="255"
               value={valueG}
               onChange={updateLEDColor("g")}
-            ></input>
-            <span id="gValueDisplay">{valueG}</span>
-          </label>
-        </div>
-        <div className="slider-container">
-          <label className="font-medium font-ubuntu text-md">
-            B:
+              min={0}
+              max={255}
+              className="w-[250px] h-[10px] rounded-lg appearance-none outline-none cursor-pointer bg-gradient-to-r from-black to-rgb-green"
+            />
+            <span className="w-8 text-left">{valueG}</span>
+          </div>
+
+          {/* Slider B */}
+          <div className="flex items-center gap-3 mt-2">
+            <label className="w-6 text-right font-medium font-ubuntu text-md">
+              B:
+            </label>
             <input
               type="range"
-              id="bSlider"
-              min="0"
-              max="255"
               value={valueB}
               onChange={updateLEDColor("b")}
-            ></input>
-            <span id="bValueDisplay">{valueB}</span>
-          </label>
+              min={0}
+              max={255}
+              className="w-[250px] h-[10px] rounded-lg appearance-none outline-none cursor-pointer bg-gradient-to-r from-black to-rgb-blue"
+            />
+            <span className="w-8 text-left">{valueB}</span>
+          </div>
         </div>
 
         <div
@@ -164,7 +174,7 @@ export default function Rgb() {
           ref={wrapperRefs}
         ></div>
         <h3 className="text-ubuntu font-regular text-sm mt-10 mb-10">Todas as cores podem ser vistas como uma "mistura" de vermelho, verde e azul!</h3>
-        <Button onClick={()=>navigate("/components/neopixel")}>Teste você mesmo!</Button>
+        <Button onClick={()=>navigate(-2)}>Teste você mesmo!</Button>
       </div>
     </>
   );

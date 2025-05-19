@@ -1,11 +1,11 @@
-import { Button } from "../components/ui/button";
+import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import lampada from "../assets/imgs/lampada.png";
-import bluetooth from "../assets/imgs/bluetooth.png";
-import touch from "../assets/imgs/touch.png";
-import LED from "../../public/assets/LED.svg";
+import lampada from "@/assets/imgs/lampada.png";
+import bluetooth from "@/assets/imgs/bluetooth.png";
+import touch from "@/assets/imgs/touch.png";
+import LED from "../../../public/assets/LED.svg";
 
-export default function IdeaNeopixel() {
+export default function NeopixelInfo() {
   const navigate = useNavigate();
   return (
     <>
@@ -71,7 +71,7 @@ export default function IdeaNeopixel() {
             </p>
           </div>
         </div>
-        <Button className="mt-2" onClick={() => navigate("/components/neopixel/rgb")}>
+        <Button className="mt-2" onClick={() => navigate("/components/neopixel/rgb-info")}>
           Como funciona o RGB?
         </Button>
       </div>

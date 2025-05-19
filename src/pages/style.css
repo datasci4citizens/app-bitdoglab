@@ -117,42 +117,6 @@ g {
     height: 100px;
 }
 
-.slider-container {
-    margin: 0px 0;
-}
-  
-input[type="range"] {
-    width: 300px;
-    height: 10px;
-    border-radius: 5px;
-    appearance: none;
-    background: gray;
-    outline: none;
-    margin: 5px;
-}
-
-#bSlider {
-    background: linear-gradient(to right, black, blue);
-}
-
-#gSlider {
-    background: linear-gradient(to right, black, green);
-}
-
-#rSlider {
-    background: linear-gradient(to right, black, red);
-}
-
-input[type="range"] {
-    -webkit-appearance: none; /* remove estilo padrão do Chrome/Safari */
-    width: 250px;
-    height: 15px;
-    border-radius: 6px;
-    box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
-    cursor: pointer;
-    border: 1px solid #ccc;
-}
-
 .led-selected {
     border: 4px solid #e31a8b !important;
     border-radius: 11px !important;
