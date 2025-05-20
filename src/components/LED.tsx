@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useImperativeHandle, forwardRef } from 'react';
 
 export interface LedProps {
   id: string;
@@ -7,20 +7,49 @@ export interface LedProps {
   selected?: boolean;
 }
 
+export interface LedRef {
+  changeColor: (color: string) => void;
+  getColor: () => string;
+}
+
 /**
  * LED Component - Renders an individual LED with SVG
  * 
  * @param {LedProps} props - Component properties
  * @returns {JSX.Element} - The rendered LED component
  */
-const LED: React.FC<LedProps> = ({
+const LED = forwardRef<LedRef, LedProps>(({
   id,
   onClick,
   color = 'rgb(0, 0, 0)',
   selected = false
-}) => {
+}, ref) => {
+
   const containerRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement | null>(null);
+  const colorRef = useRef<string>(color);
+
+  // Expose methods via ref
+  useImperativeHandle(ref, () => ({
+    // Method to change the LED color
+    changeColor: (colorChange: string) => {
+      colorRef.current = colorChange;
+      updateSvgColor(colorChange);
+    },
+    // Method to get the current LED color
+    getColor: () => colorRef.current
+  }));
+
+  // Function to update the SVG color
+  const updateSvgColor = (colorChange: string) => {
+    if (!svgRef.current) return;
+    
+    const rect = svgRef.current.querySelector("#led");
+    if (rect) {
+      rect.setAttribute("fill", colorChange);
+      rect.setAttribute("text", colorChange === 'rgb(0, 0, 0)' ? "off" : "on");
+    }
+  };
   
   // Load and render SVG
   useEffect(() => {
@@ -40,6 +69,7 @@ const LED: React.FC<LedProps> = ({
         // Set initial color
         rect.setAttribute("fill", color);
         rect.setAttribute("text", color === 'rgb(0, 0, 0)' ? "off" : "on");
+        colorRef.current = color;
                 
         // Clear container first
         if (containerRef.current.firstChild) {
@@ -50,7 +80,7 @@ const LED: React.FC<LedProps> = ({
         containerRef.current.appendChild(svg);
         svgRef.current = svg;
       });
-  }, [id]);
+  }, [id, color]);
   
   // Update border when selected state changes
   useEffect(() => {
@@ -64,6 +94,7 @@ const LED: React.FC<LedProps> = ({
     }
   }, [selected]);
   
+  /*
   // Update color when prop changes
   useEffect(() => {
     if (!svgRef.current) return;
@@ -73,7 +104,7 @@ const LED: React.FC<LedProps> = ({
       rect.setAttribute("fill", color);
       rect.setAttribute("text", color === 'rgb(0, 0, 0)' ? "off" : "on");
     }
-  }, [color]);
+  }, [color]);*/
 
   const handleClick = () => {
     if (onClick && containerRef.current) {
@@ -89,6 +120,6 @@ const LED: React.FC<LedProps> = ({
       data-led-id={id}
     />
   );
-};
+});
 
 export default LED;
