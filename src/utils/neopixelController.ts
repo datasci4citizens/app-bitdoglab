@@ -32,7 +32,7 @@ export class NeopixelController {
     leds.forEach((svg) => {
       const pos = svg.getAttribute("id");
       const ledRect = svg.querySelector("#led");
-      
+
       if (ledRect && ledRect.getAttribute("text") == "on") {
         const cor = ledRect.getAttribute("fill");
         dados.push({ pos: pos!, cor: cor! });

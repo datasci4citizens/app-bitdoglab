@@ -1,9 +1,5 @@
-import React, {
-  createContext,
-  useState,
-  useContext,
-  useEffect,
-} from "react";
+import React, { createContext, useState, useContext, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 
 export enum ConnectionType {
   CABLE = "cable",
@@ -22,6 +18,7 @@ interface ConnectionContextType {
   connectionType: ConnectionType;
   serialPort: any;
   availableDevices: BluetoothDevice[];
+  connectionHealth: "healthy" | "checking" | "lost";
   connectCable: () => Promise<void>;
   connectBluetooth: (deviceId: string) => Promise<void>;
   disconnect: () => Promise<void>;
@@ -36,6 +33,8 @@ const ConnectionContext = createContext<ConnectionContextType | undefined>(
 export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
+  const navigate = useNavigate();
+
   const [isConnected, setIsConnected] = useState(false);
   const [connectionType, setConnectionType] = useState<ConnectionType>(
     ConnectionType.NONE
@@ -45,6 +44,92 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({
   const [availableDevices, setAvailableDevices] = useState<BluetoothDevice[]>(
     []
   );
+
+  // Estados do heartbeat
+  const [heartbeatInterval, setHeartbeatInterval] =
+    useState<NodeJS.Timeout | null>(null);
+  const [failedAttempts, setFailedAttempts] = useState(0);
+  const [connectionHealth, setConnectionHealth] = useState<
+    "healthy" | "checking" | "lost"
+  >("healthy");
+  const [awaitingPong, setAwaitingPong] = useState(false);
+
+  // Parser de mensagens
+  const parseMessage = (data: string) => {
+    if (data.startsWith("HB_")) {
+      if (data.trim() === "HB_PONG") {
+        handleHeartbeatResponse();
+      }
+    }
+    // Outras mensagens são ignoradas por enquanto
+  };
+
+  // Sistema de Heartbeat
+  const startHeartbeat = () => {
+    if (heartbeatInterval) {
+      clearInterval(heartbeatInterval);
+    }
+
+    setFailedAttempts(0);
+    setConnectionHealth("healthy");
+
+    const interval = setInterval(() => {
+      sendHeartbeatPing();
+    }, 3000);
+
+    setHeartbeatInterval(interval);
+  };
+
+  const stopHeartbeat = () => {
+    if (heartbeatInterval) {
+      clearInterval(heartbeatInterval);
+      setHeartbeatInterval(null);
+    }
+    setFailedAttempts(0);
+    setAwaitingPong(false);
+    setConnectionHealth("healthy");
+  };
+
+  const sendHeartbeatPing = async () => {
+    try {
+      setConnectionHealth("checking");
+      setAwaitingPong(true);
+      await sendCommand("HB_PING");
+
+      // Timeout para verificar se não recebeu resposta
+      setTimeout(() => {
+        if (awaitingPong) {
+          handleHeartbeatTimeout();
+        }
+      }, 3000);
+    } catch (error) {
+      console.error("Erro ao enviar heartbeat:", error);
+      handleHeartbeatTimeout();
+    }
+  };
+
+  const handleHeartbeatResponse = () => {
+    setAwaitingPong(false);
+    setFailedAttempts(0);
+    setConnectionHealth("healthy");
+  };
+
+  const handleHeartbeatTimeout = () => {
+    if (!awaitingPong) return; // Já recebeu resposta
+
+    setAwaitingPong(false);
+    const newFailedAttempts = failedAttempts + 1;
+    setFailedAttempts(newFailedAttempts);
+
+    if (newFailedAttempts >= 2) {
+      // Conexão perdida
+      setConnectionHealth("lost");
+      stopHeartbeat();
+      setIsConnected(false);
+      setConnectionType(ConnectionType.NONE);
+      navigate("/connection");
+    }
+  };
 
   // Função auxiliar para promisificar callbacks do bluetoothSerial
   const promisifyBluetoothCall = <T,>(
@@ -84,6 +169,7 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({
       setIsConnected(true);
 
       readFromSerial(port);
+      startHeartbeat();
     } catch (error) {
       console.error("Erro na conexão Serial:", error);
       setIsConnected(false);
@@ -102,7 +188,7 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({
       while (true) {
         const { value, done } = await reader.read();
         if (done) break;
-        console.log("Recebido da Serial:", decoder.decode(value));
+        parseMessage(decoder.decode(value));
       }
     } catch (error) {
       console.error("Erro na leitura Serial:", error);
@@ -142,7 +228,7 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({
       window.bluetoothSerial.subscribe(
         "\n",
         (data: string) => {
-          console.log("Recebido do Bluetooth:", data);
+          parseMessage(data);
         },
         (error: any) => {
           console.error("Erro ao receber dados:", error);
@@ -152,6 +238,7 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({
       console.log("Conexão estabelecida!");
       setConnectionType(ConnectionType.BLUETOOTH);
       setIsConnected(true);
+      startHeartbeat();
     } catch (error) {
       console.error("Erro na conexão Bluetooth:", error);
       setIsConnected(false);
@@ -161,6 +248,8 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const disconnect = async () => {
     try {
+      stopHeartbeat();
+
       if (connectionType === ConnectionType.CABLE) {
         if (reader) {
           await reader.cancel();
@@ -223,6 +312,7 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({
   // Cleanup on unmount
   useEffect(() => {
     return () => {
+      stopHeartbeat();
       if (isConnected) {
         disconnect();
       }
@@ -236,6 +326,7 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({
         connectionType,
         serialPort,
         availableDevices,
+        connectionHealth,
         connectCable,
         connectBluetooth,
         disconnect,
