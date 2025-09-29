@@ -17,7 +17,7 @@ export default function SplashScreen() {
     }, [navigate]);
 
     return (
-    <div className='bg-gradient-to-bl from-pink-30 to-blue-30 h-screen flex flex-col items-center justify-center'>
+    <div className='bg-gradient-pink-blue h-screen flex flex-col items-center justify-center'>
         <img 
             src={logo} 
             alt="Logo Escola 4.0"

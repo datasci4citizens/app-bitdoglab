@@ -194,6 +194,7 @@ export default function Connection() {
     }
   }, [state.loading, state.selectedConnectionType, isConnected]);
 
+
   // 🆕 Seção de conexão WiFi
   const renderWifiSection = () => (
     <div className="mb-4 border rounded-md p-3">
@@ -213,6 +214,7 @@ export default function Connection() {
           placeholder="Porta"
           className="border rounded px-2 py-1 text-sm w-20"
         />
+
       </div>
       {wifiError && (
         <div className="text-sm text-red-600 bg-red-50 p-2 rounded mb-2">
@@ -246,6 +248,7 @@ export default function Connection() {
             {label}
           </label>
         ))}
+
       </div>
     </div>
   );

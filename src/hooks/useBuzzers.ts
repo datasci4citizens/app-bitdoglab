@@ -27,10 +27,23 @@ export const useBuzzers = (
 
   // Inicializa o controller uma vez só
   useEffect(() => {
-    if (hasInitialized.current) return;
-    hasInitialized.current = true;
+  if (hasInitialized.current) return;
+  hasInitialized.current = true;
+  
+  const initBuzzer = async () => {
     buzzersController.current = new BuzzersController(sendCommand);
-  }, [sendCommand]);
+    // Faz o setup imediatamente e garante que o buzzer esteja parado
+    try {
+      await buzzersController.current.setupBuzzer();
+      // Envia comando de stop para garantir que o buzzer esteja parado
+      await buzzersController.current.stopBuzzer(0);
+    } catch (error) {
+      console.error("Erro na inicialização do buzzer:", error);
+    }
+  };
+  
+  initBuzzer();
+}, [sendCommand]);
 
   // Bloqueia landscape
   useEffect(() => {
@@ -110,17 +123,19 @@ export const useBuzzers = (
     }
 
     const duration = Date.now() - startTimeRef.current;
-    const releasedNote = currentNoteRef.current;
-    
-    console.log(`🎹 Soltando tecla: ${releasedNote} - Duração: ${duration}ms`);
+
+    const minDuration = Math.max(duration, 50);
+    setIsPlaying(false);
+    startTimeRef.current = null;
 
     // Lógica de gravação
     if (isRecording && lastEventTime.current) {
       const now = Date.now();
       recordingBuffer.current.push({
         isPressed: false,
-        duration,
-        note: releasedNote
+
+        duration: duration,
+        delay: now - lastEventTime.current
       });
       lastEventTime.current = now;
     }
@@ -131,7 +146,7 @@ export const useBuzzers = (
     startTimeRef.current = null;
 
     try {
-      await buzzersController.current?.stopBuzzer(duration);
+      await buzzersController.current?.stopBuzzer(minDuration);
     } catch (error) {
       console.error("Erro ao parar nota:", error);
     }

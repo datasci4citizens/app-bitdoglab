@@ -14,8 +14,8 @@ import NotFound from "./pages/NotFound";
 
 // Componentes
 
-import Botoes from "./pages/Buttons/Buttons";
-import BotoesInfo from "./pages/Buttons/ButtonsFluxograma";
+//import Botoes from "./pages/Buttons/Buttons";
+//import BotoesInfo from "./pages/Buttons/ButtonsFluxograma";
 
 import Buzzers from "./pages/Buzzers/Buzzers";
 import BuzzersInfo from "./pages/Buzzers/BuzzersFluxograma";
@@ -29,9 +29,9 @@ import BuzzersInfo6 from "./pages/Buzzers/BuzzersInfo6";
 import BuzzersInfo7 from "./pages/Buzzers/BuzzersInfo7";
 import BuzzersInfo8 from "./pages/Buzzers/BuzzersInfo8";
 
-import Microfone from "./pages/Microphone/Microphone";
-import Display from "./pages/Display/Display";
-import Joystick from "./pages/Joystick/Joystick";
+//import Microfone from "./pages/Microphone/Microphone";
+//import Display from "./pages/Display/Display";
+//import Joystick from "./pages/Joystick/Joystick";
 
 import Neopixel from "./pages/Neopixel/Neopixel";
 import NeopixelInfo from "./pages/Neopixel/NeopixelFluxograma";
@@ -46,7 +46,9 @@ import LedRGBInfo from "./pages/LedRGB/LedRGBFluxograma";
 import LedRGBInfo1 from "./pages/LedRGB/LedRGBInfo1";
 import LedRGBInfo2 from "./pages/LedRGB/LedRGBInfo2";
 import LedRGBInfo4 from "./pages/LedRGB/LedRGBInfo4";
-//import EmConstrucao from "./pages/EmConstrucao";
+
+import Jogo from "./pages/Jogo/Jogo";
+import EmConstrucao from "./pages/EmConstrucao";
 
 import Snake from "./pages/Snake";
 
@@ -74,8 +76,8 @@ export function App() {
             </Route>
             
             <Route path="botoes">
-              <Route index element={<Botoes />} />
-              <Route path="info" element={<BotoesInfo />} />
+              <Route index element={<EmConstrucao />} />
+              <Route path="info" element={<EmConstrucao />} />
             </Route>
 
             <Route path="buzzers">
@@ -92,9 +94,9 @@ export function App() {
               <Route path="info8" element={<BuzzersInfo8 />} />
             </Route>
             
-            <Route path="microfone" element={<Microfone />} />
-            <Route path="display" element={<Display />} />
-            <Route path="joystick" element={<Joystick />} />
+            <Route path="microfone" element={<EmConstrucao />} />
+            <Route path="display" element={<EmConstrucao />} />
+            <Route path="joystick" element={<EmConstrucao />} />
 
 
             <Route path="neopixel">
@@ -116,7 +118,7 @@ export function App() {
               <Route path="info4" element={<LedRGBInfo4 />} />
               <Route path="rgb-info" element={<RGBInfo />} />
             </Route>
-          </Route>
+        </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

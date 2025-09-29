@@ -1,112 +1,97 @@
 import { toMicropython } from "../json/toMicropython";
 
 export interface BuzzersData {
-	isPressed: boolean;
-	frequency?: number;
-	duration?: number;
+  isPressed: boolean;
+  frequency?: number;
+  duration?: number;
 }
 
 export class BuzzersController {
-	private sendCommand: (command: string) => Promise<void>;
-	private isSetupDone: boolean = false;
-	private isPlaying: boolean = false; // Controle de estado para evitar comandos desnecessários
 
-	constructor(sendCommand: (command: string) => Promise<void>) {
-		this.sendCommand = sendCommand;
-	}
+  private sendCommand: (command: string) => Promise<void>;
+  private isSetupDone: boolean = false;
 
-	async setupBuzzer() {
-		if (this.isSetupDone) {
-			return;
-		}
+  constructor(sendCommand: (command: string) => Promise<void>) {
+    this.sendCommand = sendCommand;
+  }
 
-		const setupCommands = [
-			"\x03\r\n", // Ctrl+C para parar execução anterior
-			"from machine import Pin, PWM",
-			"import time",
-			"buzzer = PWM(Pin(21))",
-			"buzzerAux = PWM(Pin(8))",
-			"print('Buzzers inicializado')",
-		];
+  async setupBuzzer() {
+    if (this.isSetupDone) {
+      return;
+    }
 
-		for (const cmd of setupCommands) {
-			await this.sendCommand(cmd);
-			await new Promise((resolve) => setTimeout(resolve, 100));
-		}
+    const setupCommands = [
+      "\x03\r\n", // Ctrl+C para parar execução anterior
+      "from machine import Pin, PWM",
+      "import time",
+      "buzzer = PWM(Pin(21))",
+      "buzzerAux = PWM(Pin(8))",
+	  "buzzer.duty_u16(0)",
+      "buzzerAux.duty_u16(0)",
+      "print('Buzzers inicializado')",
+    ];
 
-		this.isSetupDone = true;
-	}
+    for (const cmd of setupCommands) {
+      await this.sendCommand(cmd);
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    }
 
-	async startBuzzer(frequency: number) {
-		// Evita enviar comando se já estiver tocando
-		if (this.isPlaying) {
-			console.log("⚠️ Buzzer já está tocando, ignorando comando duplicado");
-			return;
-		}
+    this.isSetupDone = true;
+  }
 
-		const data: BuzzersData = {
-			isPressed: true,
-			frequency: Number(frequency.toFixed(0))
-		};
+  async startBuzzer(frequency: number) {
+    const data: BuzzersData = {
+      isPressed: true,
+      frequency: Number(frequency.toFixed(0)),
+    };
 
-		const json = JSON.stringify({ buzzer: data }, null, 2);
-		console.log("🎵 Iniciando buzzer:", json);
+    const json = JSON.stringify({ buzzer: data }, null, 2);
+    console.log("🎵 Iniciando buzzer:", json);
 
-		try {
-			await this.setupBuzzer();
-			const micropythonCommands = toMicropython(json);
+    try {
+      await this.setupBuzzer();
+      const micropythonCommands = toMicropython(json);
 
-			for (const command of micropythonCommands) {
-				await this.sendCommand(command);
-				await new Promise((resolve) => setTimeout(resolve, 50));
-			}
-			
-			this.isPlaying = true; // Marca como tocando
-			console.log("Buzzer iniciado com sucesso!");
-		} catch (error) {
-			console.error("Erro ao iniciar buzzer:", error);
-			throw error;
-		}
-	}
+      for (const command of micropythonCommands) {
+        await this.sendCommand(command);
+        await new Promise((resolve) => setTimeout(resolve, 50));
+      }
+      console.log("Buzzer iniciado com sucesso!");
+    } catch (error) {
+      console.error("Erro ao iniciar buzzer:", error);
+      throw error;
+    }
+  }
 
-	async stopBuzzer(duration: number = 0) {
-		// Evita enviar comando se já estiver parado
-		if (!this.isPlaying) {
-			console.log("⚠️ Buzzer já está parado, ignorando comando");
-			return;
-		}
+  async stopBuzzer(duration: number) {
+    const data: BuzzersData = {
+      isPressed: false,
+      duration: duration,
+    };
 
-		const data: BuzzersData = {
-			isPressed: false,
-			duration: duration
-		};
+    const json = JSON.stringify({ buzzer: data }, null, 2);
+    console.log("Parando buzzer:", json);
 
-		const json = JSON.stringify({ buzzer: data }, null, 2);
-		console.log("🔇 Parando buzzer:", json);
+    try {
+      // Garante que o comando de parada seja enviado
+      const micropythonCommands = toMicropython(json);
 
-		try {
-			const micropythonCommands = toMicropython(json);
+      // Reduz o delay entre comandos para garantir resposta mais rápida
+      for (const command of micropythonCommands) {
+        await this.sendCommand(command);
+        await new Promise((resolve) => setTimeout(resolve, 25)); // Reduz para 25ms
+      }
 
-			for (const command of micropythonCommands) {
-				await this.sendCommand(command);
-				await new Promise((resolve) => setTimeout(resolve, 50));
-			}
-			
-			this.isPlaying = false; // Marca como parado
-			console.log("Buzzer parado com sucesso!");
-		} catch (error) {
-			console.error("Erro ao parar buzzer:", error);
-			throw error;
-		}
-	}
+      // Força um comando adicional de parada para garantir
+      await this.sendCommand("buzzer.duty_u16(0)");
+      await this.sendCommand("buzzerAux.duty_u16(0)");
+    } catch (error) {
+      console.error("Erro ao parar buzzer:", error);
+      throw error;
+    }
+  }
 
-	// Método para verificar se está tocando
-	getIsPlaying(): boolean {
-		return this.isPlaying;
-	}
-
-	resetSetup() {
-		this.isSetupDone = false;
-		this.isPlaying = false; // Reset do estado de reprodução também
-	}
+  resetSetup() {
+    this.isSetupDone = false;
+  }
 }
