@@ -14,6 +14,8 @@ export const ConnectionStatus = () => {
       return "Conectado via Bluetooth Clássico"
     } else if (connectionType === ConnectionType.BLUETOOTH_LE) {
       return "Conectado via Bluetooth Low Energy"
+    } else if (connectionType === ConnectionType.WIFI) {
+      return "Conectado via WiFi"
     } else {
       return "Conectado via Cabo"
     }

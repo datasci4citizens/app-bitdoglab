@@ -1,49 +1,63 @@
 import React, { createContext, useState, useContext, useEffect, useCallback } from "react";
-import { useBluetoothLE } from "../hooks/useBluetoothLE"; // Ajuste o caminho conforme necessário
+import { useBluetoothLE } from "../hooks/useBluetoothLE";
+import { useWifi } from "../hooks/useWifi"; // Importa o hook WiFi
 import type { BleDevice } from '@capacitor-community/bluetooth-le';
 
-// ✨ Adicionamos o BLE como novo tipo de conexão
+// Adicionamos WiFi como novo tipo de conexão
 export enum ConnectionType {
   CABLE = "cable",
-  BLUETOOTH_CLASSIC = "bluetooth_classic", // Renomeado para ser mais específico
-  BLUETOOTH_LE = "bluetooth_le",           // 🆕 Novo tipo BLE
+  BLUETOOTH_CLASSIC = "bluetooth_classic",
+  BLUETOOTH_LE = "bluetooth_le",
+  WIFI = "wifi",           // 🆕 Novo tipo WiFi
   NONE = "none",
 }
 
-// 🔄 Interface expandida para suportar ambos os tipos de Bluetooth
+// Interface para dispositivos Bluetooth Clássico
 interface BluetoothDevice {
   id: string;
   name: string;
   address: string;
 }
 
+// Interface expandida para suportar WiFi
 interface ConnectionContextType {
   isConnected: boolean;
   connectionType: ConnectionType;
   serialPort: any;
   
-  // 📱 Dispositivos Bluetooth Clássico
+  // Dispositivos Bluetooth Clássico
   availableDevices: BluetoothDevice[];
   
-  // 🔵 Dispositivos BLE - usando o hook
+  // Dispositivos BLE
   bleDevices: BleDevice[];
   isBleScanning: boolean;
   connectedBleDevice?: BleDevice;
   bleError: string | null;
   
-  // 🔌 Métodos de conexão
+  // 🆕 Estados WiFi
+  wifiLogs: string[];
+  wifiError: string | null;
+  
+  // Métodos de conexão
   connectCable: () => Promise<void>;
-  connectBluetoothClassic: (deviceId: string) => Promise<void>; // Renomeado
-  connectBluetoothLE: (device: BleDevice) => Promise<void>;     // 🆕 Novo método BLE
+  connectBluetoothClassic: (deviceId: string) => Promise<void>;
+  connectBluetoothLE: (device: BleDevice) => Promise<void>;
+  connectWifi: (ip?: string, port?: number) => Promise<void>;  // 🆕 Novo método WiFi
   disconnect: () => Promise<void>;
   
-  // 📤 Envio de comandos
+  // Envio de comandos
   sendCommand: (command: string) => Promise<void>;
   
-  // 🔍 Métodos de escaneamento
-  scanBluetoothDevices: () => Promise<void>;        // Bluetooth Clássico
-  scanBleDevices: () => Promise<void>;              // 🆕 BLE
-  clearBleError: () => void;                        // 🆕 Limpar erros BLE
+  // Métodos de escaneamento
+  scanBluetoothDevices: () => Promise<void>;
+  scanBleDevices: () => Promise<void>;
+  
+  // 🆕 Métodos WiFi
+  clearWifiLogs: () => void;
+  clearWifiError: () => void;
+  
+  // Métodos BLE
+  clearBleError: () => void;
 }
 
 const BAUD_RATE = 9600;
@@ -52,17 +66,21 @@ const BLUETOOTH_DELIMITER = "\n";
 const CONNECTION_CHECK_INTERVAL = 5000;
 const BLUETOOTH_ERRORS = ["bt socket closed", "read return: -1", "IOException", "disconnected", "Connection lost", "Device not connected"];
 
+// 🆕 Configurações padrão WiFi
+const DEFAULT_WIFI_IP = "192.168.1.100"; // IP padrão da Pico W
+const DEFAULT_WIFI_PORT = 8080;
+
 const ConnectionContext = createContext<ConnectionContextType | undefined>(undefined);
 
 export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // 🏪 Estados originais (Serial + Bluetooth Clássico)
+  // Estados originais (Serial + Bluetooth Clássico)
   const [isConnected, setIsConnected] = useState(false);
   const [connectionType, setConnectionType] = useState<ConnectionType>(ConnectionType.NONE);
   const [serialPort, setSerialPort] = useState<any>(null);
   const [reader, setReader] = useState<any>(null);
   const [availableDevices, setAvailableDevices] = useState<BluetoothDevice[]>([]);
 
-  // 🔵 Hook BLE - aqui integramos seu hook personalizado
+  // Hook BLE
   const {
     devices: bleDevices,
     isConnected: isBleConnected,
@@ -76,7 +94,20 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     clearError: clearBleError
   } = useBluetoothLE();
 
-  // 🔄 Utilitários existentes (mantidos)
+  // 🆕 Hook WiFi
+  const {
+    isConnected: isWifiConnected,
+    //isConnecting: isWifiConnecting,
+    logs: wifiLogs,
+    error: wifiError,
+    connect: connectWifiDirect,
+    send: sendWifi,
+    disconnect: disconnectWifi,
+    clearLogs: clearWifiLogs,
+    clearError: clearWifiError
+  } = useWifi();
+
+  // Utilitários existentes (mantidos)
   const promisifyBluetooth = useCallback(<T,>(fn: (...args: any[]) => void, ...args: any[]): Promise<T> => 
     new Promise((resolve, reject) => fn(...args, resolve, reject)), []);
 
@@ -110,7 +141,7 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     }
   }, [isBluetoothError, resetConnection]);
 
-  // 🔌 Método de conexão Serial (mantido)
+  // Método de conexão Serial (mantido)
   const connectCable = useCallback(async () => {
     if (!navigator.serial) throw new Error("Web Serial API não é suportada neste navegador");
     
@@ -150,7 +181,7 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     }
   }, [resetConnection]);
 
-  // 📱 Método de escaneamento Bluetooth Clássico (mantido)
+  // Método de escaneamento Bluetooth Clássico (mantido)
   const scanBluetoothDevices = useCallback(async () => {
     try {
       await ensureBluetoothEnabled();
@@ -162,7 +193,7 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     }
   }, [ensureBluetoothEnabled, promisifyBluetooth]);
 
-  // 📱 Método de conexão Bluetooth Clássico (renomeado)
+  // Método de conexão Bluetooth Clássico (mantido)
   const connectBluetoothClassic = useCallback(async (deviceId: string) => {
     try {
       if (isConnected) await disconnect();
@@ -184,7 +215,7 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     }
   }, [isConnected, ensureBluetoothEnabled, promisifyBluetooth, handleBluetoothError]);
 
-  // 🔵 NOVO: Método de escaneamento BLE
+  // Método de escaneamento BLE (mantido)
   const scanBleDevices = useCallback(async () => {
     try {
       console.log("🔍 Iniciando escaneamento BLE...");
@@ -195,17 +226,15 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     }
   }, [scanBle]);
 
-  // 🔵 NOVO: Método de conexão BLE
+  // Método de conexão BLE (mantido)
   const connectBluetoothLE = useCallback(async (device: BleDevice) => {
     try {
       console.log("🔵 Conectando ao dispositivo BLE:", device.name || device.deviceId);
       
-      // Se já estiver conectado em outro tipo, desconecta primeiro
       if (isConnected && connectionType !== ConnectionType.BLUETOOTH_LE) {
         await disconnect();
       }
       
-      // Usa o método connect do hook BLE
       const success = await connectBle(device);
       
       if (success) {
@@ -221,7 +250,33 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     }
   }, [isConnected, connectionType, connectBle]);
 
-  // 🔌 Método de desconexão (atualizado para BLE)
+  // 🆕 Método de conexão WiFi
+  const connectWifi = useCallback(async (ip: string = DEFAULT_WIFI_IP, port: number = DEFAULT_WIFI_PORT) => {
+    try {
+      console.log(`📶 Conectando via WiFi em ${ip}:${port}...`);
+      
+      // Se já estiver conectado em outro tipo, desconecta primeiro
+      if (isConnected && connectionType !== ConnectionType.WIFI) {
+        await disconnect();
+      }
+      
+      // Tenta conectar usando o hook WiFi
+      const success = await connectWifiDirect({ ip, port });
+      
+      if (success) {
+        setConnectionType(ConnectionType.WIFI);
+        setIsConnected(true);
+        console.log("✅ Conectado com sucesso via WiFi");
+      } else {
+        throw new Error("Falha na conexão WiFi");
+      }
+    } catch (error) {
+      console.error("Erro na conexão WiFi:", error);
+      throw new Error("Falha ao conectar via WiFi");
+    }
+  }, [isConnected, connectionType, connectWifiDirect]);
+
+  // Método de desconexão (atualizado para WiFi)
   const disconnect = useCallback(async () => {
     try {
       if (connectionType === ConnectionType.CABLE) {
@@ -236,17 +291,19 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         try { await promisifyBluetooth(window.bluetoothSerial.unsubscribe); } catch {}
         await promisifyBluetooth(window.bluetoothSerial.disconnect);
       } else if (connectionType === ConnectionType.BLUETOOTH_LE) {
-        // 🔵 Desconexão BLE usando o hook
         await disconnectBle();
+      } else if (connectionType === ConnectionType.WIFI) {
+        // 🆕 Desconexão WiFi
+        await disconnectWifi();
       }
       resetConnection();
     } catch (error) {
       console.error("Erro ao desconectar:", error);
       throw new Error("Falha ao desconectar do dispositivo");
     }
-  }, [connectionType, reader, serialPort, promisifyBluetooth, resetConnection, disconnectBle]);
+  }, [connectionType, reader, serialPort, promisifyBluetooth, resetConnection, disconnectBle, disconnectWifi]);
 
-  // 📤 Método de envio de comandos (atualizado para BLE)
+  // Método de envio de comandos (atualizado para WiFi)
   const sendCommand = useCallback(async (command: string) => {
     if (!isConnected) throw new Error("Não conectado a nenhum dispositivo");
     
@@ -263,10 +320,15 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         const fullCommand = command + COMMAND_TERMINATOR;
         await promisifyBluetooth(window.bluetoothSerial.write, fullCommand);
       } else if (connectionType === ConnectionType.BLUETOOTH_LE) {
-        // 🔵 Envio via BLE usando o hook
         const success = await writeBleData(command);
         if (!success) {
           throw new Error("Falha ao enviar comando via BLE");
+        }
+      } else if (connectionType === ConnectionType.WIFI) {
+        // 🆕 Envio via WiFi
+        const success = await sendWifi(command);
+        if (!success) {
+          throw new Error("Falha ao enviar comando via WiFi");
         }
       }
       
@@ -276,18 +338,27 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       if (connectionType === ConnectionType.BLUETOOTH_CLASSIC) handleBluetoothError(error);
       throw new Error("Falha ao enviar comando ao dispositivo");
     }
-  }, [isConnected, connectionType, serialPort, promisifyBluetooth, handleBluetoothError, writeBleData]);
+  }, [isConnected, connectionType, serialPort, promisifyBluetooth, handleBluetoothError, writeBleData, sendWifi]);
 
   // 🔄 Efeito para sincronizar estado BLE com o contexto
   useEffect(() => {
     if (connectionType === ConnectionType.BLUETOOTH_LE) {
-      // Se o BLE foi desconectado externamente, atualiza o contexto
       if (!isBleConnected && isConnected) {
         console.log("🔵 BLE foi desconectado externamente");
         resetConnection();
       }
     }
   }, [isBleConnected, isConnected, connectionType, resetConnection]);
+
+  // 🔄 Efeito para sincronizar estado WiFi com o contexto
+  useEffect(() => {
+    if (connectionType === ConnectionType.WIFI) {
+      if (!isWifiConnected && isConnected) {
+        console.log("📶 WiFi foi desconectado externamente");
+        resetConnection();
+      }
+    }
+  }, [isWifiConnected, isConnected, connectionType, resetConnection]);
 
   // Cleanup e verificação periódica (mantido)
   useEffect(() => {
@@ -310,29 +381,40 @@ export const ConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
   return (
     <ConnectionContext.Provider value={{
-      // 🏪 Estados
+      // Estados
       isConnected, 
       connectionType, 
       serialPort, 
       availableDevices,
       
-      // 🔵 Estados BLE
+      // Estados BLE
       bleDevices,
       isBleScanning,
       connectedBleDevice,
       bleError,
       
-      // 🔌 Métodos de conexão
+      // 🆕 Estados WiFi
+      wifiLogs,
+      wifiError,
+      
+      // Métodos de conexão
       connectCable, 
-      connectBluetoothClassic,  // Renomeado
-      connectBluetoothLE,       // 🆕 Novo
+      connectBluetoothClassic,
+      connectBluetoothLE,
+      connectWifi,        // 🆕 Novo método
       disconnect, 
       sendCommand, 
       
-      // 🔍 Métodos de escaneamento
-      scanBluetoothDevices,     // Clássico
-      scanBleDevices,           // 🆕 BLE
-      clearBleError,            // 🆕 BLE
+      // Métodos de escaneamento
+      scanBluetoothDevices,
+      scanBleDevices,
+      
+      // 🆕 Métodos WiFi
+      clearWifiLogs,
+      clearWifiError,
+      
+      // Métodos BLE
+      clearBleError,
     }}>
       {children}
     </ConnectionContext.Provider>
