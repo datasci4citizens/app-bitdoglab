@@ -19,7 +19,7 @@ function micropython(app: string, instructions: unknown): string[] {
 		case 'buzzer':
 			return interpreterBuzzer(instructions as { isPressed: boolean, frequency?: number, duration?: number });
 		default: // isso será retirado após todos os apps serem feitos
-			return ["em contrução..."]
+			return ["em construcao..."]
 	}
 }
 

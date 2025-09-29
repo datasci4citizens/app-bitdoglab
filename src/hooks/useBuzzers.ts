@@ -18,6 +18,7 @@ export const useBuzzers = (
   const [octave, setOctave] = useState(4);
   const [isPlaying, setIsPlaying] = useState(false);
   const startTimeRef = useRef<number | null>(null);
+  const currentNoteRef = useRef<Note | null>(null); // Controla qual nota está tocando
 
   // Gravação
   const recordingBuffer = useRef<any[]>([]);
@@ -62,14 +63,31 @@ export const useBuzzers = (
   }, [isRecording]);
 
   /**
-   * Manipula o evento de pressionar uma tecla (onMouseDown)
+   * Manipula o evento de pressionar uma tecla (onMouseDown/onTouchStart)
+   * IMPORTANTE: Só executa se a nota não estiver já sendo tocada
    * @param note - Nota musical pressionada
    */
   const handleNotePress = async (note: Note) => {
+    // Evita comandos duplicados se a mesma nota já estiver tocando
+    if (currentNoteRef.current === note && isPlaying) {
+      console.log("⚠️ Nota já está sendo tocada:", note);
+      return;
+    }
+
+    // Se há uma nota tocando, para ela primeiro
+    if (isPlaying && currentNoteRef.current) {
+      await handleNoteRelease();
+      // Pequeno delay para garantir que o comando anterior foi processado
+      await new Promise(resolve => setTimeout(resolve, 100));
+    }
+
     const selectedOctave = octave;
     const frequency = noteToFrequency(note, selectedOctave);
     startTimeRef.current = Date.now();
+    currentNoteRef.current = note;
     setIsPlaying(true);
+
+    console.log(`🎹 Pressionando tecla: ${note} (oitava ${selectedOctave}) - ${frequency}Hz`);
 
     // Lógica de gravação
     if (isRecording && recordingStartTime.current && lastEventTime.current) {
@@ -78,7 +96,9 @@ export const useBuzzers = (
       recordingBuffer.current.push({
         frequency: Math.round(frequency),
         delay,
-        isPressed: true
+        isPressed: true,
+        note: note,
+        octave: selectedOctave
       });
       lastEventTime.current = now;
     }
@@ -88,17 +108,22 @@ export const useBuzzers = (
     } catch (error) {
       console.error("Erro ao iniciar nota:", error);
       setIsPlaying(false);
+      currentNoteRef.current = null;
     }
   };
 
   /**
-   * Manipula o evento de soltar uma tecla (onMouseUp)
-   * @param note - Nota musical que foi solta
+   * Manipula o evento de soltar uma tecla (onMouseUp/onTouchEnd)
+   * IMPORTANTE: Só executa se há uma nota tocando
    */
   const handleNoteRelease = async () => {
-    if (!startTimeRef.current) return;
+    if (!isPlaying || !currentNoteRef.current || !startTimeRef.current) {
+      console.log("⚠️ Nenhuma nota para parar");
+      return;
+    }
 
     const duration = Date.now() - startTimeRef.current;
+
     const minDuration = Math.max(duration, 50);
     setIsPlaying(false);
     startTimeRef.current = null;
@@ -106,14 +131,19 @@ export const useBuzzers = (
     // Lógica de gravação
     if (isRecording && lastEventTime.current) {
       const now = Date.now();
-      // O delay do "release" pode não ser necessário, mas pode ser interessante registrar
       recordingBuffer.current.push({
         isPressed: false,
+
         duration: duration,
         delay: now - lastEventTime.current
       });
       lastEventTime.current = now;
     }
+
+    // Reset dos estados antes de enviar comando
+    setIsPlaying(false);
+    currentNoteRef.current = null;
+    startTimeRef.current = null;
 
     try {
       await buzzersController.current?.stopBuzzer(minDuration);
@@ -122,16 +152,34 @@ export const useBuzzers = (
     }
   };
 
-  // Expondo o buffer de gravação para uso futuro, se necessário
+  // Método para parar qualquer som que esteja tocando (útil para emergências)
+  const forceStopBuzzer = async () => {
+    if (isPlaying) {
+      console.log("🛑 Forçando parada do buzzer");
+      setIsPlaying(false);
+      currentNoteRef.current = null;
+      startTimeRef.current = null;
+      
+      try {
+        await buzzersController.current?.stopBuzzer(0);
+      } catch (error) {
+        console.error("Erro ao forçar parada:", error);
+      }
+    }
+  };
+
+  // Expondo o buffer de gravação para uso futuro
   const getRecordingBuffer = () => recordingBuffer.current;
 
   return {
     octave,
     setOctave,
     isPlaying,
+    currentNote: currentNoteRef.current,
     handleNotePress,
     handleNoteRelease,
-    getRecordingBuffer, // pode ser usado depois para exportar/salvar
-	buzzersController: buzzersController.current 
+    forceStopBuzzer, // Método adicional para emergências
+    getRecordingBuffer,
+    buzzersController: buzzersController.current 
   };
 };

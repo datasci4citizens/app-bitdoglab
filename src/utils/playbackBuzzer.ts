@@ -33,4 +33,8 @@ export async function playbackBuzzerSequence(
       console.log('Tempo real para parar nota:', endTime - startTime, 'ms');
     }
   }
+  
+  // Garantir que o buzzer está parado no final
+  console.log("🎼 Reprodução finalizada - garantindo que buzzer está parado");
+  await controller.stopBuzzer(0);
 }

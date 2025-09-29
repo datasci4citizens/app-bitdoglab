@@ -11,6 +11,7 @@
 		"preview": "vite preview"
 	},
 	"dependencies": {
+		"@capacitor-community/bluetooth-le": "^7.1.1",
 		"@capacitor/android": "^7.2.0",
 		"@capacitor/app": "^7.0.1",
 		"@capacitor/assets": "^3.0.5",
@@ -35,6 +36,7 @@
 		"@radix-ui/react-switch": "^1.1.0",
 		"@radix-ui/react-tabs": "^1.1.0",
 		"@radix-ui/react-toast": "^1.2.1",
+		"capacitor-tcp-socket": "^7.1.0",
 		"class-variance-authority": "^0.7.0",
 		"clsx": "^2.1.1",
 		"cordova-plugin-bluetooth-serial": "^0.4.7",

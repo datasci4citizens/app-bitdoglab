@@ -7,6 +7,7 @@ export interface BuzzersData {
 }
 
 export class BuzzersController {
+
   private sendCommand: (command: string) => Promise<void>;
   private isSetupDone: boolean = false;
 

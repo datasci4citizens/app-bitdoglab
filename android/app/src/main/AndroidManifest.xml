@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">  <!-- ✅ OBRIGATÓRIO -->
+
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
@@ -7,6 +9,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
+        
         <activity
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|smallestScreenSize|screenLayout|uiMode"
             android:name=".MainActivity"
@@ -21,28 +24,35 @@
             </intent-filter>
         </activity>
 
-        <provider
-            android:name="androidx.core.content.FileProvider"
-            android:authorities="${applicationId}.fileprovider"
-            android:exported="false"
-            android:grantUriPermissions="true">
-            <meta-data android:name="android.support.FILE_PROVIDER_PATHS" android:resource="@xml/file_paths" />
-        </provider>
+        <!-- 🗑️ FileProvider removido se não for usado -->
+        
     </application>
 
-    <!-- Permissions -->
+    <!-- ===== APENAS PERMISSÕES ESSENCIAIS PARA BLE ===== -->
+    
+    <!-- Internet (se precisar) -->
     <uses-permission android:name="android.permission.INTERNET" />
 
-    <!-- Legacy Bluetooth permissions (for Android < 12) -->
-    <uses-permission android:name="android.permission.BLUETOOTH" android:maxSdkVersion="30" />
-<uses-permission android:name="android.permission.BLUETOOTH_ADMIN" android:maxSdkVersion="30" />
-<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" android:maxSdkVersion="30" />
+    <!-- Bluetooth Legacy -->
+    <uses-permission android:name="android.permission.BLUETOOTH" 
+                     android:maxSdkVersion="30" />
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" 
+                     android:maxSdkVersion="30" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" 
+                     android:maxSdkVersion="30" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" 
+                     android:maxSdkVersion="30" />
 
-    <!-- Modern Bluetooth permissions (for Android 12+) -->
+    <!-- Bluetooth Moderno -->
     <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
-    <uses-permission android:name="android.permission.BLUETOOTH_SCAN" />
+    <uses-permission android:name="android.permission.BLUETOOTH_SCAN" 
+                     android:usesPermissionFlags="neverForLocation" 
+                     tools:targetApi="s" />
 
-    <!-- Bluetooth features -->
-    <uses-feature android:name="android.hardware.bluetooth" android:required="true" />
-    <uses-feature android:name="android.hardware.bluetooth_le" android:required="true" />
+    <!-- Hardware Features -->
+    <uses-feature android:name="android.hardware.bluetooth" 
+                  android:required="true" />
+    <uses-feature android:name="android.hardware.bluetooth_le" 
+                  android:required="true" />
+
 </manifest>
