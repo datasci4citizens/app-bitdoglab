@@ -15,7 +15,7 @@ export const ConnectionStatus = () => {
 
   return (
     <button
-      className="fixed top-2 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full text-xs font-medium z-50 shadow transition-colors"
+      className="fixed top-2 left-1/2 -translate-x-1/2 px-2 mt-2 rounded-full text-xs font-small z-50 shadow transition-colors"
       style={{
         backgroundColor: isConnected
           ? "rgba(0, 200, 0, 0.2)"

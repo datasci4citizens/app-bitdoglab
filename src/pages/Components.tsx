@@ -15,22 +15,22 @@ export default function Components() {
       <h1 className="text-ubuntu font-medium text-lg text-heading">
         Qual componente você quer explorar?
       </h1>
-      <div className="flex flex-wrap justify-center gap-4 w-full max-w-md px-8">
-        <Button
+      <div className="flex flex-col justify-center gap-4 w-full max-w-md px-8">
+        {/*<Button
           variant="secondary"
           className="flex-1 min-w-[calc(50%-0.5rem)]"
           onClick={() => navigate("/components/botoes")}
         >
           Botões
-        </Button>
+        </Button>*/}
         <Button
           variant="secondary"
-          className="flex-1 min-w-[calc(50%-0.5rem)]"
+          className="w-full"
           onClick={() => navigate("/components/buzzers")}
         >
           Buzzers
         </Button>
-        <Button
+        {/*<Button
           variant="secondary"
           className="flex-1 min-w-[calc(50%-0.5rem)]"
           onClick={() => navigate("/components/microfone")}
@@ -50,21 +50,28 @@ export default function Components() {
           onClick={() => navigate("/components/joystick")}
         >
           JoyStick
-        </Button>
+        </Button>*/}
         <Button
           variant="secondary"
-          className="flex-1 min-w-[calc(50%-0.5rem)]"
+          className="w-full"
           onClick={() => navigate("/components/neopixel")}
         >
           NeoPixel
         </Button>
         <Button
           variant="secondary"
-          className="flex-1 min-w-[calc(50%-0.5rem)]"
+          className="w-full"
           onClick={() => navigate("/components/ledrgb")}
         >
           Led RGB
         </Button>
+        {/*<Button
+          variant="secondary"
+          className="flex-1 min-w-[calc(50%-0.5rem)]"
+          onClick={() => navigate("/components/jogo")}
+        >
+          Jogo
+        </Button>*/}
       </div>
     </div>
   );

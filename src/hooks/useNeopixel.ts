@@ -28,6 +28,10 @@ export const useNeopixel = (
 		Array(totalLEDs).fill('rgb(0, 0, 0)')
 	);
 
+	// Modal states
+	const [saveModalOpen, setSaveModalOpen] = useState(false);
+	const [loadManageModalOpen, setLoadManageModalOpen] = useState(false);
+
 	// Initialize the NeopixelController once
 	useEffect(() => {
 		if (hasInitialized.current) return;
@@ -100,7 +104,54 @@ export const useNeopixel = (
 		}
 	};
 
+	/**
+	 * Open the save modal
+	 */
+	const handleOpenSaveModal = () => {
+		setSaveModalOpen(true);
+	};
+
+	/**
+	 * Open the load/manage modal
+	 */
+	const handleOpenLoadManage = () => {
+		setLoadManageModalOpen(true);
+	};
+
+	/**
+	 * Get current data for saving
+	 */
+	const getCurrentData = () => {
+		return {
+			ledColors: ledColors,
+			totalLEDs: totalLEDs,
+			timestamp: new Date().toISOString()
+		};
+	};
+
+	/**
+	 * Load a saved configuration
+	 */
+	const handleLoadConfiguration = (data: any) => {
+		if (data && data.ledColors && Array.isArray(data.ledColors)) {
+			// Ensure the loaded data has the correct number of LEDs
+			const loadedColors = data.ledColors.slice(0, totalLEDs);
+			
+			// Fill with black if the loaded configuration has fewer LEDs
+			while (loadedColors.length < totalLEDs) {
+				loadedColors.push('rgb(0, 0, 0)');
+			}
+			
+			setLedColors(loadedColors);
+			
+			// Reset selected LED and RGB values
+			setSelectedLEDIndex(null);
+			setRgb({ r: 0, g: 0, b: 0 });
+		}
+	};
+
 	return {
+		// RGB values (for compatibility)
 		rgb,
 		valueR: rgb.r,
 		valueG: rgb.g,
@@ -108,10 +159,26 @@ export const useNeopixel = (
 		setValueR: (value: number) => updateRgbComponent('r', value),
 		setValueG: (value: number) => updateRgbComponent('g', value),
 		setValueB: (value: number) => updateRgbComponent('b', value),
+		
+		// LED state
 		selectedLEDIndex,
-		handleLEDSelected,
 		ledColors,
+		
+		// LED handlers
+		handleLEDSelected,
 		handleClear,
-		handleSend
+		handleSend,
+		
+		// Modal states
+		saveModalOpen,
+		setSaveModalOpen,
+		loadManageModalOpen,
+		setLoadManageModalOpen,
+		
+		// Modal handlers
+		handleOpenSaveModal,
+		handleOpenLoadManage,
+		getCurrentData,
+		handleLoadConfiguration
 	};
 };

@@ -56,7 +56,7 @@ export default function BuzzersTocarFluxograma(): React.ReactElement {
 
   const flowSteps2: FlowStep[] = [
     {
-      icon: <img src={stop} className="w-16"/>,
+      icon: <Button variant="primary">Gravações</Button>,
       text: "Fazer upload de arquivo no aplicativo",
     },
     {
