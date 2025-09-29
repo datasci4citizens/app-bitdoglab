@@ -80,9 +80,9 @@ const LED: React.FC<LedProps> = ({
     
     if (selected) {
       containerRef.current.classList.remove("border-neutral-palette-30", "border-2");
-      containerRef.current.classList.add("border-secondary", "border-4", "sm:border-4", "md:border-8");
+      containerRef.current.classList.add("border-secondary", "border-4", "rounded-xl");
     } else {
-      containerRef.current.classList.remove("border-secondary", "border-4", "sm:border-4", "md:border-8");
+      containerRef.current.classList.remove("border-secondary", "border-4");
       containerRef.current.classList.add("border-neutral-palette-30", "border-2");
     }
   }, [selected]);
