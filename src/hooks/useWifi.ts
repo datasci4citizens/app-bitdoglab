@@ -57,7 +57,7 @@ export function useWifi() {
 
   // Enviar comando (terminado em \n)
   const send = useCallback(async (cmd: string): Promise<boolean> => {
-    if (!clientId) {
+    if (clientId === null) {
       const errorMsg = "Não há conexão TCP ativa";
       log(errorMsg);
       setError(errorMsg);
@@ -77,7 +77,7 @@ export function useWifi() {
   }, [clientId, log]);
 
   const read = useCallback(async (): Promise<string> => {
-    if (!clientId) {
+    if (clientId === null) {
       log("Tentativa de leitura sem conexão ativa");
       return "";
     }
@@ -97,7 +97,7 @@ export function useWifi() {
   }, [clientId, log]);
 
   const disconnect = useCallback(async (): Promise<boolean> => {
-    if (!clientId) {
+    if (clientId === null) {
       log("Nenhuma conexão ativa para desconectar");
       return true;
     }
@@ -137,7 +137,7 @@ export function useWifi() {
 
   return {
     // Estados
-    isConnected: !!clientId,
+    isConnected: clientId!==null,
     isConnecting,
     connectedDevice,
     logs,
