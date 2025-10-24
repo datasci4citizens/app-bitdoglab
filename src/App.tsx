@@ -1,5 +1,5 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { ConnectionProvider } from "./contexts/ConnectionContext";
+import { ConnectionProvider } from "./connection/ConnectionContext";
 import { ConnectionStatus } from "./components/ConnectionStatus";
 import { useEffect } from "react";
 import { ScreenOrientation } from "@capacitor/screen-orientation";

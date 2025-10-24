@@ -1,4 +1,4 @@
-import { BuzzersController } from "../utils/buzzersController";
+import { BuzzersController } from "./buzzersController";
 
 export async function playbackBuzzerSequence(
   controller: BuzzersController,

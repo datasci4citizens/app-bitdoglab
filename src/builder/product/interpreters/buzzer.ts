@@ -1,4 +1,4 @@
-import type { BuzzersData } from "../../utils/buzzersController";
+import type { BuzzersData } from "../../constroct buiders/buzzersController";
 
 export function interpreterBuzzer(data: BuzzersData): string[] {
   const commands: string[] = [];

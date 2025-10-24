@@ -1,5 +1,5 @@
 import { Header } from "@/components/Header";
-import { useConnection } from "@/contexts/ConnectionContext";
+import { useConnection } from "@/connection/ConnectionContext";
 import { useEffect } from "react";
 
 export default function Snake() {

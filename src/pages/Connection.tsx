@@ -2,7 +2,7 @@ import { useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Header } from "@/components/Header";
 import { useNavigate } from "react-router-dom";
-import { useConnection } from "../contexts/ConnectionContext";
+import { useConnection } from "../connection/ConnectionContext";
 import type { BleDevice } from '@capacitor-community/bluetooth-le';
 
 // 🔄 Tipos de conexão expandidos

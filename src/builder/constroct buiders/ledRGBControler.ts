@@ -1,4 +1,4 @@
-import { toMicropython } from "../json/toMicropython";
+import { toMicropython } from "../product/toMicropython";
 
 export class LedRGBController {
 	private sendCommand: (command: string) => Promise<void>;

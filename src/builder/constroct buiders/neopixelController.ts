@@ -1,4 +1,4 @@
-import { toMicropython } from "../json/toMicropython";
+import { toMicropython } from "../product/toMicropython";
 
 export interface NeopixelData {
   pos: string;

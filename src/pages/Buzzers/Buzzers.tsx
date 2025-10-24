@@ -1,10 +1,10 @@
 import { useState, useEffect, useRef } from "react";
-import { useConnection } from "@/contexts/ConnectionContext";
+import { useConnection } from "@/connection/ConnectionContext";
 import { Header } from "@/components/Header";
 import Slider from "@/components/Slider";
 import { useBuzzers } from "@/hooks/useBuzzers";
 import Piano from "@/components/Piano";
-import { playbackBuzzerSequence } from "@/utils/playbackBuzzer";
+import { playbackBuzzerSequence } from "@/builder/constroct buiders/playbackBuzzer";
 import SaveModal from "@/components/SaveModal";
 import LoadManageModal from "@/components/LoadManageModal";
 import { Square, Music } from "lucide-react";

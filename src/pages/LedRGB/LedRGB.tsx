@@ -2,7 +2,7 @@ import ColorPicker from '@/components/ColorPicker';
 import { Header } from "@/components/Header";
 import LED from '@/components/LED';
 import { Button } from '@/components/ui/button';
-import { useConnection } from "@/contexts/ConnectionContext";
+import { useConnection } from "@/connection/ConnectionContext";
 import { useLedRGB } from '@/hooks/useLedRGB';
 
 /**
