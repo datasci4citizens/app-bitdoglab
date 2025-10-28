@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { useConnection } from "@/contexts/ConnectionContext";
+import { useConnection } from "@/connection/ConnectionContext";
 import { Header } from "@/components/Header";
 import ColorPicker from "@/components/ColorPicker";
 import LEDMatrix from "@/components/LEDMatrix";

@@ -1,7 +1,7 @@
 import { Header } from "@/components/Header";
 import { Button } from "@/components/ui/button";
 import { useButtons } from "@/hooks/useButtons";
-import { useConnection } from "@/contexts/ConnectionContext";
+import { useConnection } from "@/connection/ConnectionContext";
 import DropdownSelector from "@/components/DropdownSelector";
 import Selecter from "@/components/Selecter";
 import LED from "@/components/LED";

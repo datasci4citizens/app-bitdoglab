@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { LedRGBController } from "../utils/ledRGBControler";
+import { LedRGBController } from "../builder/constroct buiders/ledRGBControler";
 import type { RGB } from "@/types/rgb";
 
 /**

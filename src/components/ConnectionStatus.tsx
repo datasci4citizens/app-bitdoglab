@@ -1,4 +1,4 @@
-import { useConnection, ConnectionType } from "../contexts/ConnectionContext";
+import { useConnection, ConnectionType } from "../connection/ConnectionContext";
 import { useNavigate } from "react-router-dom";
 
 export const ConnectionStatus = () => {

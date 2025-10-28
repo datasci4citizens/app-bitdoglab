@@ -1,5 +1,5 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { ConnectionProvider } from "./contexts/ConnectionContext";
+import { ConnectionProvider } from "./connection/ConnectionContext";
 import { ConnectionStatus } from "./components/ConnectionStatus";
 import { useEffect } from "react";
 import { ScreenOrientation } from "@capacitor/screen-orientation";
@@ -47,7 +47,6 @@ import LedRGBInfo1 from "./pages/LedRGB/LedRGBInfo1";
 import LedRGBInfo2 from "./pages/LedRGB/LedRGBInfo2";
 import LedRGBInfo4 from "./pages/LedRGB/LedRGBInfo4";
 
-import Jogo from "./pages/Jogo/Jogo";
 import EmConstrucao from "./pages/EmConstrucao";
 
 import Snake from "./pages/Snake";
