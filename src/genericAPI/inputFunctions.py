@@ -1,5 +1,7 @@
 import machine                
 from machine import PWM, Pin  
+import machine                
+from machine import PWM, Pin  
 from machine import SoftI2C, ADC
 import neopixel               
 import time
@@ -7,27 +9,43 @@ import math
 import random                 
 from ssd1306 import SSD1306_I2C 
 
-
-
 # ======================================================================
-#   LED Catodo comum
+#   LED Cátodo Comum
 # ======================================================================
 
+def controller_ledRGB(pinR, pinG, pinB, colorR, colorG, colorB):
+    pwmR = PWM(pinR)
+    pwmG = PWM(pinG)
+    pwmB = PWM(pinB)
 
+    pwmR.freq(1000)
+    pwmG.freq(1000)
+    pwmB.freq(1000)
 
+    pwmR.duty_u16(colorR)
+    pwmG.duty_u16(colorG)
+    pwmB.duty_u16(colorB)
 
 
 # ======================================================================
 #   Buzzer A
 # ======================================================================
 
+def controller_Buzzer(pinBuzzer, freq, intensity):
 
+    pwm = PWM(pinBuzzer)
+    pwm.freq(freq)
+    pwm.duty_u16(intensity)
+    return pwm    # retorna objeto para desligar depois se quiser
 
 
 # ======================================================================
 #   Matriz de LEDs Neopixel 5x5
 # ======================================================================
 
+# Exemplo: matriz no pino 7 com 25 LEDs:
+def init_matrix(pin=7, num_leds=25):
+    return neopixel.NeoPixel(Pin(pin), num_leds)
 
 
 
