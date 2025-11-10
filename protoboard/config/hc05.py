@@ -1,3 +1,6 @@
+"""
+    Este código serve para alterar o nome da HC-05
+"""
 from machine import UART
 import time
 
