@@ -3,13 +3,17 @@ import gc
 from machine import Pin
 import neopixel
 
+NUM_LEDS = 25
+# Neopixel Matrix (GPIO7)
+np_pin = Pin(7, Pin.OUT)
+np_pin.value(0) # Safety: Force pin LOW before init
+np = neopixel.NeoPixel(np_pin, NUM_LEDS)
 print("Initializating BitDogLab")
 
 # Imports hardware
 print("Loading hardware...")
 from hardware import (
     update_oled, clear_oled,
-    clear_neopixels,
     joy_up,joy_down, button_a, button_b,
     led,
     play_tone
@@ -192,4 +196,3 @@ def main():
 # Execution
 if __name__ == "__main__":
     main()
-
