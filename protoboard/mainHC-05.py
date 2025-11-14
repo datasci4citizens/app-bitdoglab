@@ -1,3 +1,4 @@
+
 import time
 import gc
 from machine import Pin
@@ -9,6 +10,25 @@ np_pin = Pin(7, Pin.OUT)
 np_pin.value(0) # Safety: Force pin LOW before init
 np = neopixel.NeoPixel(np_pin, NUM_LEDS)
 print("Initializating BitDogLab")
+=======
+"""
+Este código deve ser salvo direto na raspiberry pi em "Salvar Como" para funcionar o módulo bluetooth
+"""
+from machine import UART
+from machine import PWM, Pin,I2C, Timer, ADC
+from ssd1306 import SSD1306_I2C
+import bluetooth
+# Configuração do UART para HC-05
+uart = UART(0, baudrate=9600)
+uart.init(9600, bits=8, parity=None, stop=1)
+# Configurando o LED RGB
+led_r = PWM(Pin(12))
+led_g = PWM(Pin(13))
+led_b = PWM(Pin(11))
+
+led_r.freq(1000)
+led_g.freq(1000)
+led_b.freq(1000)
 
 # Imports hardware
 print("Loading hardware...")
