@@ -43,17 +43,6 @@ oled = SSD1306_I2C(SCREEN_WIDTH, SCREEN_HEIGHT, i2c)
 oled.fill(0)
 oled.show()
 
-# Neopixel Matrix (GPIO7)
-np_pin = Pin(7, Pin.OUT)
-np_pin.value(0) # Safety: Force pin LOW before init
-np = neopixel.NeoPixel(np_pin, NUM_LEDS)
-
-def clear_neopixels():
-    """Desliga todos os NeoPixels"""
-    for i in range(NUM_LEDS):
-        np[i] = (0, 0, 0)
-    np.write()
-
 # RGB Led (PWM)
 led_r = PWM(Pin(12)); led_g = PWM(Pin(13)); led_b = PWM(Pin(11))
 led_r.freq(1000); led_g.freq(1000); led_b.freq(1000)

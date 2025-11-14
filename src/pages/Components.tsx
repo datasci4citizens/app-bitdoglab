@@ -65,14 +65,6 @@ export default function Components() {
         >
           Led RGB
         </Button>
-        <Button
-          variant="secondary"
-          className="flex-1 min-w-[calc(50%-0.5rem)]"
-          onClick={() => navigate("/components/snake")}
-          >
-            Snake
-          </Button>
-
       </div>
     </div>
   );
